@@ -11,6 +11,7 @@ user_model = api.model('User', {
     'email': fields.String(required=True, description='Email of the user')
 })
 
+
 @api.route('/')
 class UserList(Resource):
     @api.expect(user_model, validate=True)
@@ -32,17 +33,12 @@ class UserList(Resource):
     @api.response(200, 'OK')
     def get(self):
         """Get a list of users"""
+        keys = ['id', 'first_name', 'last_name', 'email']
         all_users = facade.get_all_users()
-        list_all_users = []
-        for user in all_users:
-            list_all_users.append(
-                {
-                    'id': user.id,
-                    'first_name': user.first_name,
-                    'last_name': user.last_name,
-                    'email': user.email
-                    }
-            )
+        list_all_users = [
+            {k:getattr(user, k) for k in keys}
+            for user in all_users
+        ]
         return list_all_users
 
 
