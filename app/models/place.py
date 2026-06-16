@@ -4,7 +4,8 @@ Classes:
     Place(BaseModel)
 """
 from . import BaseModel
-
+from .user import User
+from .amenity import Amenity
 
 class Place(BaseModel):
     """ Represents a registered place in the app that can be rented
@@ -13,17 +14,17 @@ class Place(BaseModel):
         BaseModel
 
     Attributes:
-        + id: string
-        + title: string
-        + description: string
-        + price: float
-        + latitude: float
-        + longitude: float
-        + owner: User
-        + reviews: List(Review)
-        + amenities: List(Amenity)
-        + created_at: datetime
-        + updated_at: datetime
+        - id: string
+        - title: string
+        - description: string
+        - price: float
+        - latitude: float
+        - longitude: float
+        - owner: User
+        - reviews: List(Review)
+        - amenities: List(Amenity)
+        - created_at: datetime
+        - updated_at: datetime
 
     Functions:
         + add_review(self, review): void
@@ -46,14 +47,38 @@ class Place(BaseModel):
         self.longitude = longitude
         
         self.owner = owner
-        self.reviews = []
-        self.amenities = []
+        self.__reviews = []
+        self.__amenities = []
+    
+    # --- TITLE PROPERTIES & VALIDATION ---
+    @property
+    def title(self):
+        return self.__title
+
+    @title.setter
+    def title(self, title):
+        if type(title) is not str:
+            raise TypeError("title must be a string")
+        if len(title) > 100:
+            raise ValueError("title cannot be longer than 100 characters")
+        self.__title = title
+
+    # --- DESCRIPTION PROPERTIES & VALIDATION ---
+    @property
+    def description(self):
+        return self.__description
+
+    @description.setter
+    def description(self, description):
+        if type(description) is not str:
+            raise TypeError("description must be a string")
+        self.__description = description
 
     # --- PRICE PROPERTIES & VALIDATION ---
     @property
     def price(self):
         """Getter for price"""
-        return self._price
+        return self.__price
 
     @price.setter
     def price(self, value):
@@ -64,13 +89,13 @@ class Place(BaseModel):
             raise ValueError("Price must be a valid number.")
         if val < 0:
             raise ValueError("Price must be a non-negative float.")
-        self._price = val
+        self.__price = val
 
     # --- LATITUDE PROPERTIES & VALIDATION ---
     @property
     def latitude(self):
         """Getter for latitude"""
-        return self._latitude
+        return self.__latitude
 
     @latitude.setter
     def latitude(self, value):
@@ -81,13 +106,13 @@ class Place(BaseModel):
             raise ValueError("Latitude must be a valid number.")
         if not (-90.0 <= val <= 90.0):
             raise ValueError("Latitude must be between -90.0 and 90.0 inclusive.")
-        self._latitude = val
+        self.__latitude = val
 
     # --- LONGITUDE PROPERTIES & VALIDATION ---
     @property
     def longitude(self):
         """Getter for longitude"""
-        return self._longitude
+        return self.__longitude
 
     @longitude.setter
     def longitude(self, value):
@@ -98,7 +123,28 @@ class Place(BaseModel):
             raise ValueError("Longitude must be a valid number.")
         if not (-180.0 <= val <= 180.0):
             raise ValueError("Longitude must be between -180.0 and 180.0 inclusive.")
-        self._longitude = val
+        self.__longitude = val
+
+    # --- OWNER PROPERTIES AND VALIDATION ---
+    @property
+    def owner(self):
+        return self.__owner
+
+    @owner.setter
+    def owner(self, owner):
+        if type(owner) is not User:
+            raise TypeError("owner must be a User")
+        self.__owner = owner
+    
+    # --- REVIEWS PROPERTIES ---
+    @property
+    def reviews(self):
+        return self.__reviews
+
+    # --- AMENITIES PROPERTIES ---
+    @property
+    def amenities(self):
+        return self.__amenities
 
     # --- RELATIONSHIP MANAGEMENT INTERFACES ---
     def add_review(self, review):

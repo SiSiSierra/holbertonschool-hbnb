@@ -12,9 +12,9 @@ class BaseModel(ABC):
     """ Abstract Class BaseModel
     
     Attributes:
-        + id: String
-        + created_at: datetime
-        + updated_at: datetime
+        - id: String
+        - created_at: datetime
+        - updated_at: datetime
 
     Functions:
         + save(self): void
@@ -22,13 +22,27 @@ class BaseModel(ABC):
     """
 
     def __init__(self):
-        self.id = str(uuid.uuid4())
-        self.created_at = datetime.now()
-        self.updated_at = datetime.now()
+        self.__id = str(uuid.uuid4())
+        self.__created_at = datetime.now()
+        self.__updated_at = datetime.now()
+
+    @property
+    def id(self):
+        return self.__id
+
+    @property
+    def created_at(self):
+        return self.__created_at
+
+    @property
+    def updated_at(self):
+        return self.__updated_at
+
+    #---------------------------------
 
     def save(self):
         """Set updated_at to current time after self is modified"""
-        self.updated_at = datetime.now()
+        self.__updated_at = datetime.now()
 
     def update(self, data):
         """Set self's attributes to given new values
