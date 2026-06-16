@@ -41,21 +41,46 @@ class HBnBFacade:
         self.amenity_repo.update(amenity_id, amenity_data)
 
     def create_place(self, place_data):
-    # Placeholder for logic to create a place, including validation for price, latitude, and longitude
-    pass
+        owner_id = place_data.get('owner_id')
+        owner = self.get_user(owner_id)
+        if not owner:
+            raise ValueError("Owner not found.")
+
+        # If your model needs owner_id, use owner_id=owner_id. 
+        # If your model needs the whole user object, use owner=owner.
+        place = Place(
+            title=place_data.get('title'),
+            description=place_data.get('description'),
+            price=place_data.get('price'),
+            latitude=place_data.get('latitude'),
+            longitude=place_data.get('longitude'),
+            owner=owner  
+        )
+        
+        self.place_repo.add(place)
+        return place
 
     def get_place(self, place_id):
-    # Placeholder for logic to retrieve a place by ID, including associated owner and amenities
-    pass
+        # 1. Fetch the place from the repository using its unique ID
+        place = self.place_repo.get(place_id)
+        
+        # 2. Return the place object if found, or None if it doesn't exist
+        if not place:
+            return None
+        return place
 
     def get_all_places(self):
-    # Placeholder for logic to retrieve all places
-    pass
+        # 1. Fetch the entire collection list of stored places
+        return self.place_repo.get_all()
 
     def update_place(self, place_id, place_data):
-    # Placeholder for logic to update a place
-    pass
-
+        place = self.get_place(place_id)
+        if not place:
+            return None
+        
+        self.place_repo.update(place_id, place_data)
+        return place
+    
     def create_review(self, review_data):
     # Placeholder for logic to create a review, including validation for user_id, place_id, and rating
     pass
