@@ -40,6 +40,8 @@ class Review(BaseModel):
     def text(self, text):
         if type(text) is not str:
             raise TypeError("text must be a string")
+        if not 0 < len(text):
+            raise ValueError("text must not be empty")
         self.__text = text
 
     @property

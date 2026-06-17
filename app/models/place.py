@@ -59,8 +59,8 @@ class Place(BaseModel):
     def title(self, title):
         if type(title) is not str:
             raise TypeError("title must be a string")
-        if len(title) > 100:
-            raise ValueError("title cannot be longer than 100 characters")
+        if not 0 < len(title) <= 100:
+            raise ValueError("title must be between 1 and 100 characters long")
         self.__title = title
 
     # --- DESCRIPTION PROPERTIES & VALIDATION ---
