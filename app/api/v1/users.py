@@ -11,6 +11,13 @@ user_model = api.model('User', {
     'email': fields.String(required=True, description='Email of the user')
 })
 
+user_model_get = api.model('User', {
+    'id': fields.String,
+    'first_name': fields.String,
+    'last_name': fields.String,
+    'email': fields.String
+})
+
 
 @api.route('/')
 class UserList(Resource):
@@ -30,16 +37,11 @@ class UserList(Resource):
         new_user = facade.create_user(user_data)
         return {'id': new_user.id, 'first_name': new_user.first_name, 'last_name': new_user.last_name, 'email': new_user.email}, 201
 
-    @api.response(200, 'OK')
+    #@api.response(200, 'OK')
+    @api.marshal_with(user_model_get, code=200, as_list=True)
     def get(self):
-        """Get a list of users"""
-        keys = ['id', 'first_name', 'last_name', 'email']
-        all_users = facade.get_all_users()
-        list_all_users = [
-            {k:getattr(user, k) for k in keys}
-            for user in all_users
-        ]
-        return list_all_users
+        """ Get a list of all users """
+        return facade.get_all_users()
 
 
 @api.route('/<user_id>')
