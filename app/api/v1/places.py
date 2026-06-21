@@ -73,7 +73,7 @@ class PlaceList(Resource):
     @api.marshal_with(place_model_get, code=200, as_list=True)
     def get(self):
         """Retrieve a list of all places"""
-        return places = facade.get_all_places()
+        return facade.get_all_places()
 
 
 @api.route('/<place_id>')
