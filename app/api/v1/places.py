@@ -37,6 +37,12 @@ place_model = api.model('Place', {
     'reviews': fields.List(fields.Nested(review_model), description='List of reviews')
 })
 
+place_model_get = api.model('PlaceListAll', {
+    'id': fields.String,
+    'title': fields.String,
+    'latitude': fields.Float,
+    'longitude': fields.Float
+})
 
 @api.route('/')
 class PlaceList(Resource):
@@ -64,18 +70,10 @@ class PlaceList(Resource):
             # Catches domain validation errors (e.g. negative price, out-of-bound coordinates, missing owner)
             return {'error': str(err)}, 400
 
-    @api.response(200, 'List of places retrieved successfully')
+    @api.marshal_with(place_model_get, code=200, as_list=True)
     def get(self):
         """Retrieve a list of all places"""
-        places = facade.get_all_places()
-        
-        # Following the project requirements requirement: list endpoint returns a simplified summary array
-        return [{
-            'id': p.id,
-            'title': p.title,
-            'latitude': p.latitude,
-            'longitude': p.longitude
-        } for p in places], 200
+        return places = facade.get_all_places()
 
 
 @api.route('/<place_id>')

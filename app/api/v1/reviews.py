@@ -12,6 +12,11 @@ review_model = api.model('Review', {
     'place_id': fields.String(required=True, description='ID of the place')
 })
 
+review_model_get = api.model('ReviewMarshal', {
+    'id': fields.String,
+    'text': fields.String,
+    'rating': fields.Integer
+})
 
 @api.route('/')
 class ReviewList(Resource):
@@ -33,15 +38,10 @@ class ReviewList(Resource):
         except ValueError as err:
             return {'error': str(err)}, 400
 
-    @api.response(200, 'List of reviews retrieved successfully')
+    @api.marshal_with(review_model_get, code=200, as_list=True)
     def get(self):
         """Retrieve a list of all reviews"""
-        reviews = facade.get_all_reviews()
-        return [{
-            'id': r.id,
-            'text': r.text,
-            'rating': r.rating
-        } for r in reviews], 200
+        return facade.get_all_reviews()
 
 
 @api.route('/<review_id>')
