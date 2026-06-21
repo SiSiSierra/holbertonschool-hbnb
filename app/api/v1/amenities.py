@@ -9,6 +9,11 @@ amenity_model = api.model('Amenity', {
     'name': fields.String(required=True, description='Name of the amenity')
 })
 
+amenity_model_get = api.model('AmenityMarshal', {
+    'id': fields.String,
+    'name': fields.String
+})
+
 @api.route('/')
 class AmenityList(Resource):
     @api.expect(amenity_model)
@@ -21,16 +26,10 @@ class AmenityList(Resource):
         new_amenity = facade.create_amenity(amenity_data)
         return {'id': new_amenity.id, 'name': new_amenity.name}, 201
 
-    @api.response(200, 'List of amenities retrieved successfully')
+    @api.marshal_with(amenity_model_get, code=200, as_list=True)
     def get(self):
         """Retrieve a list of all amenities"""
-        keys = ['id', 'name']
-        all_amenities = facade.get_all_amenities()
-        list_all_amenities = [
-            {k:getattr(amenity, k) for k in keys}
-            for amenity in all_amenities
-        ]
-        return list_all_amenities
+        return facade.get_all_amenities()
 
 
 @api.route('/<amenity_id>')

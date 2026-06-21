@@ -11,7 +11,7 @@ user_model = api.model('User', {
     'email': fields.String(required=True, description='Email of the user')
 })
 
-user_model_get = api.model('User', {
+user_model_get = api.model('UserMarshal', {
     'id': fields.String,
     'first_name': fields.String,
     'last_name': fields.String,
