@@ -7,6 +7,7 @@ from . import BaseModel
 from .user import User
 from .amenity import Amenity
 
+
 class Place(BaseModel):
     """ Represents a registered place in the app that can be rented
 
@@ -35,21 +36,22 @@ class Place(BaseModel):
         super().__init__()
         self.title = title  # Up to 100 chars
         self.description = description
-        
+
         # Initialize private backing attributes for our properties
         self._price = 0.0
         self._latitude = 0.0
         self._longitude = 0.0
-        
-        # Assigning via the properties below automatically triggers validation on init
+
+        # Assigning via the properties below automatically
+        # triggers validation on init
         self.price = price
         self.latitude = latitude
         self.longitude = longitude
-        
+
         self.owner = owner
         self.__reviews = []
         self.__amenities = []
-    
+
     # --- TITLE PROPERTIES & VALIDATION ---
     @property
     def title(self):
@@ -105,7 +107,9 @@ class Place(BaseModel):
         except (TypeError, ValueError):
             raise ValueError("Latitude must be a valid number.")
         if not (-90.0 <= val <= 90.0):
-            raise ValueError("Latitude must be between -90.0 and 90.0 inclusive.")
+            raise ValueError(
+                    "Latitude must be between -90.0 and 90.0 inclusive."
+                    )
         self.__latitude = val
 
     # --- LONGITUDE PROPERTIES & VALIDATION ---
@@ -122,7 +126,9 @@ class Place(BaseModel):
         except (TypeError, ValueError):
             raise ValueError("Longitude must be a valid number.")
         if not (-180.0 <= val <= 180.0):
-            raise ValueError("Longitude must be between -180.0 and 180.0 inclusive.")
+            raise ValueError(
+                    "Longitude must be between -180.0 and 180.0 inclusive."
+                    )
         self.__longitude = val
 
     # --- OWNER PROPERTIES AND VALIDATION ---
@@ -135,7 +141,7 @@ class Place(BaseModel):
         if type(owner) is not User:
             raise TypeError("owner must be a User")
         self.__owner = owner
-    
+
     # --- REVIEWS PROPERTIES ---
     @property
     def reviews(self):

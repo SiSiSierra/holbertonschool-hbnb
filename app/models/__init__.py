@@ -8,9 +8,10 @@ import uuid
 from datetime import datetime
 from abc import ABC
 
+
 class BaseModel(ABC):
     """ Abstract Class BaseModel
-    
+
     Attributes:
         - id: String
         - created_at: datetime
@@ -38,7 +39,7 @@ class BaseModel(ABC):
     def updated_at(self):
         return self.__updated_at
 
-    #---------------------------------
+    # ---------------------------------
 
     def save(self):
         """Set updated_at to current time after self is modified"""

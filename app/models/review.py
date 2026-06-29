@@ -7,6 +7,7 @@ from . import BaseModel
 from .user import User
 from .place import Place
 
+
 class Review(BaseModel):
     """ Contains a review from a User about a Place
 
@@ -28,9 +29,13 @@ class Review(BaseModel):
     def __init__(self, text, rating, place, user):
         super().__init__()
         self.text = text
-        self.rating = rating # 1-5
-        self.place = place # This MUST be validated!!
-        self.user = user # This MUST be validated!!
+        self.rating = rating
+        self.place = place
+        self.user = user
+
+    # Getters and setters ---------------------------------
+
+    # text ------------------
 
     @property
     def text(self):
@@ -44,6 +49,8 @@ class Review(BaseModel):
             raise ValueError("text must not be empty")
         self.__text = text
 
+    # rating ----------------
+
     @property
     def rating(self):
         return self.__rating
@@ -56,6 +63,8 @@ class Review(BaseModel):
             raise ValueError("rating must be between 1 and 5")
         self.__rating = rating
 
+    # place -----------------
+
     @property
     def place(self):
         return self.__place
@@ -65,6 +74,8 @@ class Review(BaseModel):
         if type(place) is not Place:
             raise TypeError("place must be a Place")
         self.__place = place
+
+    # user ------------------
 
     @property
     def user(self):
