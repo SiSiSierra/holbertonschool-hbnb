@@ -8,7 +8,7 @@ from app.models.amenity import Amenity
 class TestUserCreation(unittest.TestCase):
 
     def test_standard_creation(self):        
-        user = User(first_name="John", last_name="Doe", email="john.doe@example.com")
+        user = User(first_name="John", last_name="Doe", email="john.doe@example.com", password="password")
         self.assertEqual(user.first_name, "John")
         self.assertEqual(user.last_name, "Doe")
         self.assertEqual(user.email, "john.doe@example.com")
@@ -16,7 +16,7 @@ class TestUserCreation(unittest.TestCase):
 
 class TestPlaceCreation(unittest.TestCase):
 
-    user = User(first_name="Jonathon", last_name="Clus", email="jon.clus@holberton.com")
+    user = User(first_name="Jonathon", last_name="Clus", email="jon.clus@holberton.com", password="password")
 
     def test_standard_creation(self):
         place = Place("Holberton", "It's cool", 20.0, -37.8174123, 144.9592932, self.user)
@@ -29,8 +29,8 @@ class TestPlaceCreation(unittest.TestCase):
 
 class TestReviewCreation(unittest.TestCase):
 
-    userReviewer = User(first_name="Sierra", last_name="Hunt", email="SierraHunt@protonmail.com")
-    userOwner = User(first_name="Jonathon", last_name="Clus", email="jon.clus@holberton.com")
+    userReviewer = User(first_name="Sierra", last_name="Hunt", email="SierraHunt@protonmail.com", password="pswd1")
+    userOwner = User(first_name="Jonathon", last_name="Clus", email="jon.clus@holberton.com", password="pswd2")
     place = Place("Holberton", "It's cool", 20.0, -37.8174123, 144.9592932, userOwner)
 
     def test_standard_creation(self):
