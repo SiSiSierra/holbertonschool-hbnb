@@ -138,8 +138,6 @@ class Place(BaseModel):
 
     @owner.setter
     def owner(self, owner):
-        if type(owner) is not User:
-            raise TypeError("owner must be a User")
         self.__owner = owner
 
     # --- REVIEWS PROPERTIES ---

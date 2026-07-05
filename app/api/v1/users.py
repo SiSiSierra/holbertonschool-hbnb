@@ -5,7 +5,7 @@ import json
 api = Namespace('users', description='User operations')
 
 # Define the user model for input validation and documentation
-user_model = api.model('User', {
+user_model = api.model('User_POST', {
     'first_name': fields.String(
         required=True,
         description='First name of the user'),
@@ -20,7 +20,7 @@ user_model = api.model('User', {
         description='Password of the user')
 })
 
-user_model_get = api.model('UserMarshal', {
+user_model_get = api.model('User_GET', {
     'id': fields.String,
     'first_name': fields.String,
     'last_name': fields.String,
@@ -60,6 +60,7 @@ class UserList(Resource):
 
 @api.route('/<user_id>')
 class UserResource(Resource):
+    @api.marshal_with(user_model_get, code=200)
     @api.response(200, 'User details retrieved successfully')
     @api.response(404, 'User not found')
     def get(self, user_id):

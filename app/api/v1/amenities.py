@@ -5,11 +5,11 @@ import json
 api = Namespace('amenities', description='Amenity operations')
 
 # Define the amenity model for input validation and documentation
-amenity_model = api.model('Amenity', {
+amenity_model = api.model('Amenity_POST', {
     'name': fields.String(required=True, description='Name of the amenity')
 })
 
-amenity_model_get = api.model('AmenityMarshal', {
+amenity_model_get = api.model('Amenity_GET', {
     'id': fields.String,
     'name': fields.String
 })
@@ -35,6 +35,7 @@ class AmenityList(Resource):
 
 @api.route('/<amenity_id>')
 class AmenityResource(Resource):
+    @api.marshal_with(amenity_model_get, code=200)
     @api.response(200, 'Amenity details retrieved successfully')
     @api.response(404, 'Amenity not found')
     def get(self, amenity_id):

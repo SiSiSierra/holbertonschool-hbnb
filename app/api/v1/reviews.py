@@ -5,7 +5,7 @@ from app.services import facade
 api = Namespace('reviews', description='Review operations')
 
 # Define the review model for input validation and documentation
-review_model = api.model('Review', {
+review_model = api.model('Review_POST', {
     'text': fields.String(required=True, description='Text of the review'),
     'rating': fields.Integer(
         required=True, description='Rating of the place (1-5)'),
@@ -13,7 +13,7 @@ review_model = api.model('Review', {
     'place_id': fields.String(required=True, description='ID of the place')
 })
 
-review_model_get = api.model('ReviewMarshal', {
+review_model_get = api.model('Review_GET', {
     'id': fields.String,
     'text': fields.String,
     'rating': fields.Integer
@@ -50,6 +50,7 @@ class ReviewList(Resource):
 
 @api.route('/<review_id>')
 class ReviewResource(Resource):
+    @api.marshal_with(review_model_get, code=200)
     @api.response(200, 'Review details retrieved successfully')
     @api.response(404, 'Review not found')
     def get(self, review_id):
