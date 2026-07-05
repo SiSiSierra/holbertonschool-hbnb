@@ -7,7 +7,8 @@ api = Namespace('reviews', description='Review operations')
 # Define the review model for input validation and documentation
 review_model = api.model('Review', {
     'text': fields.String(required=True, description='Text of the review'),
-    'rating': fields.Integer(required=True, description='Rating of the place (1-5)'),
+    'rating': fields.Integer(
+        required=True, description='Rating of the place (1-5)'),
     'user_id': fields.String(required=True, description='ID of the user'),
     'place_id': fields.String(required=True, description='ID of the place')
 })
@@ -17,6 +18,7 @@ review_model_get = api.model('ReviewMarshal', {
     'text': fields.String,
     'rating': fields.Integer
 })
+
 
 @api.route('/')
 class ReviewList(Resource):
@@ -32,8 +34,10 @@ class ReviewList(Resource):
                 'id': new_review.id,
                 'text': new_review.text,
                 'rating': new_review.rating,
-                'user_id': new_review.user.id if hasattr(new_review.user, 'id') else data.get('user_id'),
-                'place_id': new_review.place.id if hasattr(new_review.place, 'id') else data.get('place_id')
+                'user_id': new_review.user.id if hasattr(
+                    new_review.user, 'id') else data.get('user_id'),
+                'place_id': new_review.place.id if hasattr(
+                    new_review.place, 'id') else data.get('place_id')
             }, 201
         except ValueError as err:
             return {'error': str(err)}, 400
@@ -53,13 +57,15 @@ class ReviewResource(Resource):
         review = facade.get_review(review_id)
         if not review:
             return {'error': 'Review not found'}, 404
-            
+
         return {
             'id': review.id,
             'text': review.text,
             'rating': review.rating,
-            'user_id': review.user.id if hasattr(review.user, 'id') else str(review.user),
-            'place_id': review.place.id if hasattr(review.place, 'id') else str(review.place)
+            'user_id': review.user.id if hasattr(
+                review.user, 'id') else str(review.user),
+            'place_id': review.place.id if hasattr(
+                review.place, 'id') else str(review.place)
         }, 200
 
     @api.expect(review_model, validate=False)  # validate=False allows partial payload updates

@@ -5,9 +5,7 @@ Classes:
 """
 from . import BaseModel
 import re
-from flask_bcrypt import Bcrypt
-
-bcrypt = Bcrypt()
+from .. import bcrypt
 
 
 class User(BaseModel):

@@ -4,6 +4,7 @@ from app.models.amenity import Amenity
 from app.models.place import Place
 from app.models.review import Review
 
+
 class HBnBFacade:
     def __init__(self):
         self.user_repo = InMemoryRepository()
@@ -48,7 +49,7 @@ class HBnBFacade:
         if not owner:
             raise ValueError("Owner not found.")
 
-        # If your model needs owner_id, use owner_id=owner_id. 
+        # If your model needs owner_id, use owner_id=owner_id.
         # If your model needs the whole user object, use owner=owner.
         place = Place(
             title=place_data.get('title'),
@@ -56,16 +57,16 @@ class HBnBFacade:
             price=place_data.get('price'),
             latitude=place_data.get('latitude'),
             longitude=place_data.get('longitude'),
-            owner=owner  
+            owner=owner
         )
-        
+
         self.place_repo.add(place)
         return place
 
     def get_place(self, place_id):
         # 1. Fetch the place from the repository using its unique ID
         place = self.place_repo.get(place_id)
-        
+
         # 2. Return the place object if found, or None if it doesn't exist
         if not place:
             return None
@@ -79,33 +80,33 @@ class HBnBFacade:
         place = self.get_place(place_id)
         if not place:
             return None
-        
+
         self.place_repo.update(place_id, place_data)
         return place
-    
+
     # --- REVIEW METHODS ---
     def create_review(self, review_data):
         user = self.get_user(review_data.get('user_id'))
         if not user:
             raise ValueError("User not found.")
-            
+
         place = self.get_place(review_data.get('place_id'))
         if not place:
             raise ValueError("Place not found.")
-            
+
         new_review = Review(
             text=review_data.get('text'),
             rating=review_data.get('rating'),
             user=user,
             place=place
         )
-        
+
         self.review_repo.add(new_review)
-        
+
         # Sync the review reference to the targeted place
         if hasattr(place, 'reviews') and place.reviews is not None:
             place.reviews.append(new_review)
-            
+
         return new_review
 
     def get_review(self, review_id):
@@ -118,7 +119,7 @@ class HBnBFacade:
         place = self.get_place(place_id)
         if not place:
             return None
-        
+
         all_reviews = self.get_all_reviews()
         return [r for r in all_reviews if r.place.id == place_id]
 
@@ -126,30 +127,33 @@ class HBnBFacade:
         review = self.get_review(review_id)
         if not review:
             return None
-            
+
         self.review_repo.update(review_id, review_data)
         return review
-        
+
     def delete_review(self, review_id):
         # 1. Fetch the review object from memory
         review = self.get_review(review_id)
         if not review:
             return False
-            
+
         # 2. Wrap the relationship removal in a safe try/except block
         try:
             place = review.place
             if place and hasattr(place, 'reviews') and place.reviews:
                 # Use a list comprehension to filter out the deleted review safely
-                place.reviews = [r for r in place.reviews if getattr(r, 'id', None) != review_id]
+                place.reviews = [
+                        r for r in place.reviews
+                        if getattr(r, 'id', None) != review_id
+                        ]
         except Exception:
-            pass # Ignore any sync relationship issues so it doesn't block the actual deletion
-            
+            pass  # Ignore any sync relationship issues so it doesn't block the actual deletion
+
         # 3. Target the repository storage directly
         # If your repository uses the string ID key, delete via review_id
         if review_id in self.review_repo._storage:
             del self.review_repo._storage[review_id]
             return True
-            
+
         # If your repository tracks by object reference value instead of string key
         return self.review_repo.delete(review)

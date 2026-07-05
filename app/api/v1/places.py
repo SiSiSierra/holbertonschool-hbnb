@@ -29,12 +29,16 @@ place_model = api.model('Place', {
     'title': fields.String(required=True, description='Title of the place'),
     'description': fields.String(description='Description of the place'),
     'price': fields.Float(required=True, description='Price per night'),
-    'latitude': fields.Float(required=True, description='Latitude of the place'),
-    'longitude': fields.Float(required=True, description='Longitude of the place'),
+    'latitude': fields.Float(
+        required=True, description='Latitude of the place'),
+    'longitude': fields.Float(
+        required=True, description='Longitude of the place'),
     'owner_id': fields.String(required=True, description='ID of the owner'),
     'owner': fields.Nested(user_model, description='Owner of the place'),
-    'amenities': fields.List(fields.Nested(amenity_model), description='List of amenities'),
-    'reviews': fields.List(fields.Nested(review_model), description='List of reviews')
+    'amenities': fields.List(
+        fields.Nested(amenity_model), description='List of amenities'),
+    'reviews': fields.List(
+        fields.Nested(review_model), description='List of reviews')
 })
 
 place_model_get = api.model('PlaceListAll', {
@@ -43,6 +47,7 @@ place_model_get = api.model('PlaceListAll', {
     'latitude': fields.Float,
     'longitude': fields.Float
 })
+
 
 @api.route('/')
 class PlaceList(Resource):
@@ -55,7 +60,7 @@ class PlaceList(Resource):
         try:
             # Delegate handling to the facade layer
             new_place = facade.create_place(data)
-            
+
             # Return serialized summary of the newly created object
             return {
                 'id': new_place.id,
@@ -64,10 +69,12 @@ class PlaceList(Resource):
                 'price': new_place.price,
                 'latitude': new_place.latitude,
                 'longitude': new_place.longitude,
-                'owner_id': new_place.owner.id if hasattr(new_place.owner, 'id') else str(new_place.owner)
+                'owner_id': new_place.owner.id if hasattr(
+                    new_place.owner, 'id') else str(new_place.owner)
             }, 201
         except ValueError as err:
-            # Catches domain validation errors (e.g. negative price, out-of-bound coordinates, missing owner)
+            # Catches domain validation errors
+            # (e.g. negative price, out-of-bound coordinates, missing owner)
             return {'error': str(err)}, 400
 
     @api.marshal_with(place_model_get, code=200, as_list=True)
@@ -85,7 +92,7 @@ class PlaceResource(Resource):
         place = facade.get_place(place_id)
         if not place:
             return {'error': 'Place not found'}, 404
-        
+
         # Explicit serialization building the complex nested relation contracts
         return {
             'id': place.id,
@@ -116,11 +123,12 @@ class PlaceResource(Resource):
             updated_place = facade.update_place(place_id, data)
             if not updated_place:
                 return {'error': 'Place not found'}, 404
-                
+
             return {'message': 'Place updated successfully'}, 200
         except ValueError as err:
             return {'error': str(err)}, 400
-            
+
+
 @api.route('/<place_id>/reviews')
 class PlaceReviewList(Resource):
     @api.response(200, 'List of reviews for the place retrieved successfully')
@@ -130,7 +138,7 @@ class PlaceReviewList(Resource):
         reviews = facade.get_reviews_by_place(place_id)
         if reviews is None:
             return {'error': 'Place not found'}, 404
-            
+
         return [{
             'id': r.id,
             'text': r.text,
