@@ -32,7 +32,7 @@ class Place(BaseModel):
         + add_amenity(self, amenity): void
     """
 
-    def __init__(self, title, description, price, latitude, longitude, owner):
+    def __init__(self, title, description, price, latitude, longitude, owner_id):
         super().__init__()
         self.title = title  # Up to 100 chars
         self.description = description
@@ -48,7 +48,7 @@ class Place(BaseModel):
         self.latitude = latitude
         self.longitude = longitude
 
-        self.owner = owner
+        self.owner_id = owner_id
         self.__reviews = []
         self.__amenities = []
 
@@ -107,9 +107,8 @@ class Place(BaseModel):
         except (TypeError, ValueError):
             raise ValueError("Latitude must be a valid number.")
         if not (-90.0 <= val <= 90.0):
-            raise ValueError(
-                    "Latitude must be between -90.0 and 90.0 inclusive."
-                    )
+            raise ValueError("Latitude must be between -90.0 and 90.0 \
+                    inclusive.")
         self.__latitude = val
 
     # --- LONGITUDE PROPERTIES & VALIDATION ---
@@ -126,19 +125,18 @@ class Place(BaseModel):
         except (TypeError, ValueError):
             raise ValueError("Longitude must be a valid number.")
         if not (-180.0 <= val <= 180.0):
-            raise ValueError(
-                    "Longitude must be between -180.0 and 180.0 inclusive."
-                    )
+            raise ValueError("Longitude must be between -180.0 and 180.0 \
+                    inclusive.")
         self.__longitude = val
 
     # --- OWNER PROPERTIES AND VALIDATION ---
     @property
-    def owner(self):
-        return self.__owner
+    def owner_id(self):
+        return self.__owner_id
 
-    @owner.setter
-    def owner(self, owner):
-        self.__owner = owner
+    @owner_id.setter
+    def owner_id(self, owner_id):
+        self.__owner_id = owner_id
 
     # --- REVIEWS PROPERTIES ---
     @property

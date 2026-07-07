@@ -1,5 +1,6 @@
 from flask_restx import Namespace, Resource, fields
 from flask import request
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services import facade
 
 api = Namespace('places', description='Place operations')
@@ -25,7 +26,6 @@ place_model = api.model('Place_POST', {
         required=True, description='Latitude of the place'),
     'longitude': fields.Float(
         required=True, description='Longitude of the place'),
-    'owner_id': fields.String(required=True, description='ID of the owner')
 })
 
 place_model_get = api.model('Place_GET', {
@@ -44,18 +44,20 @@ place_model_get = api.model('Place_GET', {
 
 @api.route('/')
 class PlaceList(Resource):
+    @jwt_required()
     @api.expect(place_model)
     @api.response(201, 'Place successfully created')
     @api.response(400, 'Invalid input data')
     def post(self):
         """Register a new place"""
+        current_user = get_jwt_identity()
         data = request.json
+        data['owner_id'] = current_user
         try:
             # Delegate handling to the facade layer
             new_place = facade.create_place(data)
 
             # Return serialized summary of the newly created object
-            owner = facade.get_user(new_place.owner)
             return {
                 'id': new_place.id,
                 'title': new_place.title,
@@ -63,7 +65,7 @@ class PlaceList(Resource):
                 'price': new_place.price,
                 'latitude': new_place.latitude,
                 'longitude': new_place.longitude,
-                'owner_id': owner.id
+                'owner_id': new_place.owner_id
             }, 201
         except ValueError as err:
             # Catches domain validation errors
@@ -110,7 +112,7 @@ class PlaceResource(Resource):
             return {'error': 'Place not found'}, 404
 
         # Explicit serialization building the complex nested relation contracts
-        owner = facade.get_user(place.owner)
+        owner = facade.get_user(place.owner_id)
         return {
             'id': place.id,
             'title': place.title,
@@ -130,6 +132,7 @@ class PlaceResource(Resource):
             } for amenity in place.amenities]
         }, 200
 
+    @jwt_required()
     @api.expect(place_model, validate=False)  # validate=False allows partial data structures during PUT updates
     @api.response(200, 'Place updated successfully')
     @api.response(404, 'Place not found')
@@ -137,6 +140,17 @@ class PlaceResource(Resource):
     def put(self, place_id):
         """Update a place's information"""
         data = request.json
+
+        # Verify place exists
+        place = facade.get_place(place_id)
+        if not place:
+            return {'error', 'Place not found'}, 404
+
+        # Only the owner can update a place
+        if get_jwt_identity() != facade.get_place(place_id).owner_id:
+            return {'error': 'Place can only be updated by its owner'}, 403
+
+        # Update place
         try:
             updated_place = facade.update_place(place_id, data)
             if not updated_place:

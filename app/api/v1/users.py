@@ -39,17 +39,24 @@ class UserList(Resource):
         user_data = api.payload
 
         # Simulate email uniqueness check (to be replaced by real validation with persistence)
-        existing_user = facade.get_user_by_email(user_data['email'])
-        if existing_user:
+        try:
+            facade.get_user_by_email(user_data['email'])
             return {'error': 'Email already registered'}, 400
+        except KeyError:
+            pass
 
-        new_user = facade.create_user(user_data)
-        return {
-                'id': new_user.id,
-                'first_name': new_user.first_name,
-                'last_name': new_user.last_name,
-                'email': new_user.email
-                }, 201
+        try:
+            new_user = facade.create_user(user_data)
+            return {
+                    'id': new_user.id,
+                    'first_name': new_user.first_name,
+                    'last_name': new_user.last_name,
+                    'email': new_user.email
+                    }, 201
+        except TypeError as err:
+            return {'error': str(err)}, 400
+        except ValueError as err:
+            return {'error': str(err)}, 400
 
     # @api.response(200, 'OK')
     @api.marshal_with(user_model_get, code=200, as_list=True)
