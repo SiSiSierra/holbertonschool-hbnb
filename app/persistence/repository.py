@@ -80,7 +80,7 @@ class SQLAlchemyRepository(Repository):
             db.session.commit()
 
     def delete(self, obj_id):
-        obj = self.get(obj_id):
+        obj = self.get(obj_id)
         if obj:
             db.session.delte(obj)
             db.session.commit()
