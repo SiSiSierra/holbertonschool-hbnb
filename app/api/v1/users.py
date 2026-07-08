@@ -1,6 +1,7 @@
 from flask_restx import Namespace, Resource, fields
 from app.services import facade
 import json
+import re
 
 api = Namespace('users', description='User operations')
 
@@ -43,6 +44,12 @@ class UserList(Resource):
         if existing_user:
             return {'error': 'Email already registered'}, 400
 
+        # Validate e-mail format
+        valid_email_regex = \
+            '^(\\w|\\.|\\_|\\-)+[@](\\w|\\_|\\-|\\.)+[.]\\w{2,3}$'
+        if not re.search(valid_email_regex, user_data['email']):
+            return {'error': "email must be in a valid e-mail format"}, 400
+
         new_user = facade.create_user(user_data)
         return {
                 'id': new_user.id,
@@ -55,6 +62,8 @@ class UserList(Resource):
     @api.marshal_with(user_model_get, code=200, as_list=True)
     def get(self):
         """ Get a list of all users """
+        u = facade.get_all_users()
+        print(u)
         return facade.get_all_users()
 
 
