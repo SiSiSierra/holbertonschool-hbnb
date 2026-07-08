@@ -3,9 +3,12 @@
 Classes:
     Place(BaseModel)
 """
-from . import BaseModel
+from .baseclass import BaseModel
 from .user import User
 from .amenity import Amenity
+from .. import db
+from sqlalchemy.orm import relationship
+from .association_table import place_amenity
 
 
 class Place(BaseModel):
@@ -31,131 +34,142 @@ class Place(BaseModel):
         + add_review(self, review): void
         + add_amenity(self, amenity): void
     """
+    __tablename__ = 'places'
 
-    def __init__(self, title, description, price, latitude, longitude, owner):
-        super().__init__()
-        self.title = title  # Up to 100 chars
-        self.description = description
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(256), nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    latitude = db.Column(db.Float, nullable=False)
+    longitude = db.Column(db.Float, nullable=False)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    review_child = relationship('Review', backref='places', lazy=True)
+    amenity_association = relationship('Amenity', secondary=place_amenity, lazy='subquery', backref=db.backref('places', lazy=True))
 
-        # Initialize private backing attributes for our properties
-        self._price = 0.0
-        self._latitude = 0.0
-        self._longitude = 0.0
 
-        # Assigning via the properties below automatically
-        # triggers validation on init
-        self.price = price
-        self.latitude = latitude
-        self.longitude = longitude
+    # def __init__(self, title, description, price, latitude, longitude, owner):
+    #     super().__init__()
+    #     self.title = title  # Up to 100 chars
+    #     self.description = description
 
-        self.owner = owner
-        self.__reviews = []
-        self.__amenities = []
+    #     # Initialize private backing attributes for our properties
+    #     self._price = 0.0
+    #     self._latitude = 0.0
+    #     self._longitude = 0.0
 
-    # --- TITLE PROPERTIES & VALIDATION ---
-    @property
-    def title(self):
-        return self.__title
+    #     # Assigning via the properties below automatically
+    #     # triggers validation on init
+    #     self.price = price
+    #     self.latitude = latitude
+    #     self.longitude = longitude
 
-    @title.setter
-    def title(self, title):
-        if type(title) is not str:
-            raise TypeError("title must be a string")
-        if not 0 < len(title) <= 100:
-            raise ValueError("title must be between 1 and 100 characters long")
-        self.__title = title
+    #     self.owner = owner
+    #     self.__reviews = []
+    #     self.__amenities = []
 
-    # --- DESCRIPTION PROPERTIES & VALIDATION ---
-    @property
-    def description(self):
-        return self.__description
+    # # --- TITLE PROPERTIES & VALIDATION ---
+    # @property
+    # def title(self):
+    #     return self.__title
 
-    @description.setter
-    def description(self, description):
-        if type(description) is not str:
-            raise TypeError("description must be a string")
-        self.__description = description
+    # @title.setter
+    # def title(self, title):
+    #     if type(title) is not str:
+    #         raise TypeError("title must be a string")
+    #     if not 0 < len(title) <= 100:
+    #         raise ValueError("title must be between 1 and 100 characters long")
+    #     self.__title = title
 
-    # --- PRICE PROPERTIES & VALIDATION ---
-    @property
-    def price(self):
-        """Getter for price"""
-        return self.__price
+    # # --- DESCRIPTION PROPERTIES & VALIDATION ---
+    # @property
+    # def description(self):
+    #     return self.__description
 
-    @price.setter
-    def price(self, value):
-        """Setter for price with validation rules (> 0)"""
-        try:
-            val = float(value)
-        except (TypeError, ValueError):
-            raise ValueError("Price must be a valid number.")
-        if val < 0:
-            raise ValueError("Price must be a non-negative float.")
-        self.__price = val
+    # @description.setter
+    # def description(self, description):
+    #     if type(description) is not str:
+    #         raise TypeError("description must be a string")
+    #     self.__description = description
 
-    # --- LATITUDE PROPERTIES & VALIDATION ---
-    @property
-    def latitude(self):
-        """Getter for latitude"""
-        return self.__latitude
+    # # --- PRICE PROPERTIES & VALIDATION ---
+    # @property
+    # def price(self):
+    #     """Getter for price"""
+    #     return self.__price
 
-    @latitude.setter
-    def latitude(self, value):
-        """Setter for latitude with validation rules (-90 to 90)"""
-        try:
-            val = float(value)
-        except (TypeError, ValueError):
-            raise ValueError("Latitude must be a valid number.")
-        if not (-90.0 <= val <= 90.0):
-            raise ValueError(
-                    "Latitude must be between -90.0 and 90.0 inclusive."
-                    )
-        self.__latitude = val
+    # @price.setter
+    # def price(self, value):
+    #     """Setter for price with validation rules (> 0)"""
+    #     try:
+    #         val = float(value)
+    #     except (TypeError, ValueError):
+    #         raise ValueError("Price must be a valid number.")
+    #     if val < 0:
+    #         raise ValueError("Price must be a non-negative float.")
+    #     self.__price = val
 
-    # --- LONGITUDE PROPERTIES & VALIDATION ---
-    @property
-    def longitude(self):
-        """Getter for longitude"""
-        return self.__longitude
+    # # --- LATITUDE PROPERTIES & VALIDATION ---
+    # @property
+    # def latitude(self):
+    #     """Getter for latitude"""
+    #     return self.__latitude
 
-    @longitude.setter
-    def longitude(self, value):
-        """Setter for longitude with validation rules (-180 to 180)"""
-        try:
-            val = float(value)
-        except (TypeError, ValueError):
-            raise ValueError("Longitude must be a valid number.")
-        if not (-180.0 <= val <= 180.0):
-            raise ValueError(
-                    "Longitude must be between -180.0 and 180.0 inclusive."
-                    )
-        self.__longitude = val
+    # @latitude.setter
+    # def latitude(self, value):
+    #     """Setter for latitude with validation rules (-90 to 90)"""
+    #     try:
+    #         val = float(value)
+    #     except (TypeError, ValueError):
+    #         raise ValueError("Latitude must be a valid number.")
+    #     if not (-90.0 <= val <= 90.0):
+    #         raise ValueError(
+    #                 "Latitude must be between -90.0 and 90.0 inclusive."
+    #                 )
+    #     self.__latitude = val
 
-    # --- OWNER PROPERTIES AND VALIDATION ---
-    @property
-    def owner(self):
-        return self.__owner
+    # # --- LONGITUDE PROPERTIES & VALIDATION ---
+    # @property
+    # def longitude(self):
+    #     """Getter for longitude"""
+    #     return self.__longitude
 
-    @owner.setter
-    def owner(self, owner):
-        self.__owner = owner
+    # @longitude.setter
+    # def longitude(self, value):
+    #     """Setter for longitude with validation rules (-180 to 180)"""
+    #     try:
+    #         val = float(value)
+    #     except (TypeError, ValueError):
+    #         raise ValueError("Longitude must be a valid number.")
+    #     if not (-180.0 <= val <= 180.0):
+    #         raise ValueError(
+    #                 "Longitude must be between -180.0 and 180.0 inclusive."
+    #                 )
+    #     self.__longitude = val
 
-    # --- REVIEWS PROPERTIES ---
-    @property
-    def reviews(self):
-        return self.__reviews
+    # # --- OWNER PROPERTIES AND VALIDATION ---
+    # @property
+    # def owner(self):
+    #     return self.__owner
 
-    # --- AMENITIES PROPERTIES ---
-    @property
-    def amenities(self):
-        return self.__amenities
+    # @owner.setter
+    # def owner(self, owner):
+    #     self.__owner = owner
 
-    # --- RELATIONSHIP MANAGEMENT INTERFACES ---
-    def add_review(self, review):
-        """Appends a new review instance to the place tracking log"""
-        self.reviews.append(review)
+    # # --- REVIEWS PROPERTIES ---
+    # @property
+    # def reviews(self):
+    #     return self.__reviews
 
-    def add_amenity(self, amenity):
-        """Appends a new amenity instance to the place configuration array"""
-        if amenity not in self.amenities:
-            self.amenities.append(amenity)
+    # # --- AMENITIES PROPERTIES ---
+    # @property
+    # def amenities(self):
+    #     return self.__amenities
+
+    # # --- RELATIONSHIP MANAGEMENT INTERFACES ---
+    # def add_review(self, review):
+    #     """Appends a new review instance to the place tracking log"""
+    #     self.reviews.append(review)
+
+    # def add_amenity(self, amenity):
+    #     """Appends a new amenity instance to the place configuration array"""
+    #     if amenity not in self.amenities:
+    #         self.amenities.append(amenity)

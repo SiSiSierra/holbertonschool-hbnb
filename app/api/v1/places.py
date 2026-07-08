@@ -35,7 +35,7 @@ place_model_get = api.model('Place_GET', {
     'price': fields.Float(description='Price of the place per night'),
     'latitude': fields.Float(description='Global latitude of the place'),
     'longitude': fields.Float(description='Global longitude of the place'),
-    'owner': fields.Nested(user_model, description=\
+    'owner_id': fields.Nested(user_model, description=\
             'Owner of the place'),
     'amenities': fields.List(fields.Nested(amenity_model), description=\
             'Amenities this place hosts'),
