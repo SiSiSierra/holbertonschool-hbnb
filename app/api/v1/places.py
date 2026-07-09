@@ -78,7 +78,7 @@ class PlaceList(Resource):
         places = facade.get_all_places()
         out = []
         for p in places:
-            owner = facade.get_user(p.owner)
+            owner = facade.get_user(p.owner_id)
             out.append({
                 'id': p.id,
                 'title': p.title,
@@ -143,19 +143,14 @@ class PlaceResource(Resource):
 
         # Verify place exists
         place = facade.get_place(place_id)
-        if not place:
-            return {'error', 'Place not found'}, 404
 
         # Only the owner can update a place
         if get_jwt_identity() != facade.get_place(place_id).owner_id:
-            return {'error': 'Place can only be updated by its owner'}, 403
+            return {'error': 'Unauthorised action.'}, 403
 
         # Update place
         try:
             updated_place = facade.update_place(place_id, data)
-            if not updated_place:
-                return {'error': 'Place not found'}, 404
-
             return {'message': 'Place updated successfully'}, 200
         except ValueError as err:
             return {'error': str(err)}, 400

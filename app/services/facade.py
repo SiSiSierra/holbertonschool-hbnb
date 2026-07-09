@@ -83,8 +83,6 @@ class HBnBFacade:
 
     def update_place(self, place_id, place_data):
         place = self.get_place(place_id)
-        if not place:
-            return None
 
         self.place_repo.update(place_id, place_data)
         return place
@@ -108,12 +106,12 @@ class HBnBFacade:
 
         # Verify user isn't reviewing themselves
         if user.id == place.owner_id:
-            return {'error': 'User cannot review a place they own'}, 403
+            return {'error': 'You cannot review your own place'}, 400
         
         # Verify user hasn't already reviewed this place
         for r in self.get_reviews_by_place(place.id):
             if r.user_id == user.id:
-                return {'error': 'User already has a review for this place'}, \
+                return {'error': 'You have already reviewed this place'}, \
                         403
 
         # Create review
@@ -167,8 +165,7 @@ class HBnBFacade:
         
         # Verify the user changing is the user owning
         if review_data.get('user_id') == review.user_id:
-            return {'error': 'Users cannot update reviews belonging to other \
-                    users'}, 403
+            return {'error': 'Unauthorised action.'}, 403
 
         self.review_repo.update(review_id, review_data)
         return {
@@ -193,8 +190,7 @@ class HBnBFacade:
 
         # Verify user deleting is the user owning
         if user_id != review.user_id:
-            return {'error': 'Users cannot delete reviews belonging to other \
-                    users'}, 403
+            return {'error': 'Unauthorized action'}, 403
         
         # Remove review from associated place
         place = facade.get_place(review.place_id)

@@ -33,7 +33,7 @@ class ReviewList(Resource):
     @api.expect(review_model)
     @api.response(201, 'Review successfully created')
     @api.response(400, 'Invalid input data')
-    @api.response(403, 'Not permitted to create this review')
+    @api.response(403, 'Unauthorised action.')
     def post(self):
         """Register a new review"""
         data = request.json
@@ -76,7 +76,7 @@ class ReviewResource(Resource):
     @api.expect(review_model_put, validate=False)
     @api.response(200, 'Review updated successfully')
     @api.response(404, 'Review not found')
-    @api.response(403, 'Users cannot update reviews belonging to other users')
+    @api.response(403, 'Unauthorised action.')
     @api.response(400, 'Invalid input data')
     def put(self, review_id):
         """Update a review's information"""
