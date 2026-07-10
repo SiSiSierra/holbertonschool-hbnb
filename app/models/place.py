@@ -42,8 +42,8 @@ class Place(BaseModel):
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
-    review_child = relationship('Review', backref='places', lazy=True)
-    amenity_association = relationship('Amenity', secondary=place_amenity, lazy='subquery', backref=db.backref('places', lazy=True))
+    review_child = relationship('Review', backref='place', lazy=True)
+    amenity_association = relationship('Amenity', secondary=place_amenity, lazy='subquery', backref=db.backref('place', lazy=True))
 
 
     # def __init__(self, title, description, price, latitude, longitude, owner):

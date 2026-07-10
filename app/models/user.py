@@ -7,6 +7,7 @@ from .baseclass import BaseModel
 import re
 from .. import bcrypt, db
 import uuid
+from sqlalchemy.orm import relationship
 
 
 
@@ -39,6 +40,8 @@ reviews and places
     email = db.Column(db.String(120), nullable=False, unique=True)
     password = db.Column(db.String(128), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
+    place_child = relationship('Place', backref='owner', lazy=True)
+    review_child = relationship('Review', backref='user', lazy=True)
 
     # Password hashing and comparison ---------------------
 

@@ -70,7 +70,7 @@ class HBnBFacade:
             price=place_data.get('price'),
             latitude=place_data.get('latitude'),
             longitude=place_data.get('longitude'),
-            owner=owner_id
+            user_id=owner_id
         )
 
         self.place_repo.add(place)

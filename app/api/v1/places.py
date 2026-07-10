@@ -35,7 +35,7 @@ place_model_get = api.model('Place_GET', {
     'price': fields.Float(description='Price of the place per night'),
     'latitude': fields.Float(description='Global latitude of the place'),
     'longitude': fields.Float(description='Global longitude of the place'),
-    'owner_id': fields.Nested(user_model, description=\
+    'owner': fields.Nested(user_model, description=\
             'Owner of the place'),
     'amenities': fields.List(fields.Nested(amenity_model), description=\
             'Amenities this place hosts'),
@@ -55,7 +55,7 @@ class PlaceList(Resource):
             new_place = facade.create_place(data)
 
             # Return serialized summary of the newly created object
-            owner = facade.get_user(new_place.owner)
+            owner = facade.get_user(new_place.user_id)
             return {
                 'id': new_place.id,
                 'title': new_place.title,
@@ -76,7 +76,7 @@ class PlaceList(Resource):
         places = facade.get_all_places()
         out = []
         for p in places:
-            owner = facade.get_user(p.owner)
+            owner = facade.get_user(p.user_id)
             out.append({
                 'id': p.id,
                 'title': p.title,
@@ -85,17 +85,17 @@ class PlaceList(Resource):
                 'latitude': p.latitude,
                 'longitude': p.longitude,
                 'owner': {
-                    'id': owner.id,
-                    'first_name': owner.first_name,
-                    'last_name': owner.last_name,
-                    'email': owner.email
+                    'id': p.owner.id,
+                    'first_name': p.owner.first_name,
+                    'last_name': p.owner.last_name,
+                    'email': p.owner.email
                 },
                 'amenities': [{
                     'id': amenity.id,
                     'name': amenity.name
                 } for amenity in p.amenities]
             })
-        return out, 200
+        return places, 200
 
 
 @api.route('/<place_id>')
@@ -110,7 +110,7 @@ class PlaceResource(Resource):
             return {'error': 'Place not found'}, 404
 
         # Explicit serialization building the complex nested relation contracts
-        owner = facade.get_user(place.owner)
+        owner = facade.get_user(place.user_id)
         return {
             'id': place.id,
             'title': place.title,
