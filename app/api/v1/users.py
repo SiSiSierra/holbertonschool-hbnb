@@ -2,6 +2,7 @@ from flask_restx import Namespace, Resource, fields
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from app.services import facade
 import json
+import re
 
 api = Namespace('users', description='User operations')
 
@@ -53,6 +54,11 @@ class UserList(Resource):
             return {'error': 'Email already registered'}, 400
         except KeyError:
             pass
+        # Validate e-mail format
+        valid_email_regex = \
+            '^(\\w|\\.|\\_|\\-)+[@](\\w|\\_|\\-|\\.)+[.]\\w{2,3}$'
+        if not re.search(valid_email_regex, user_data['email']):
+            return {'error': "email must be in a valid e-mail format"}, 400
         try:
             new_user = facade.create_user(user_data)
             return {

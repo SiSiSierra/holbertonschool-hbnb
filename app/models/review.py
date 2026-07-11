@@ -3,7 +3,11 @@
 Classed:
     Review(BaseModel)
 """
-from . import BaseModel
+from .baseclass import BaseModel
+from .user import User
+from .place import Place
+from .. import db
+from sqlalchemy.orm import validates
 
 
 class Review(BaseModel):
@@ -23,64 +27,86 @@ class Review(BaseModel):
 
     Functions:
     """
+    __tablename__ = "reviews"
+    text = db.Column(db.String(256), nullable=False)
+    rating = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    place_id = db.Column(db.String(36), db.ForeignKey('places.id'), nullable=False)
 
-    def __init__(self, text, rating, place_id, user_id):
-        super().__init__()
-        self.text = text
-        self.rating = rating
-        self.place_id = place_id
-        self.user_id = user_id
-
-    # Getters and setters ---------------------------------
-
-    # text ------------------
-
-    @property
-    def text(self):
-        return self.__text
-
-    @text.setter
-    def text(self, text):
-        if type(text) is not str:
+    # Validators ----------------------------
+    @validates("text")
+    def validate_text(self, key, value):
+        if type(value) is not str:
             raise TypeError("text must be a string")
-        if not 0 < len(text):
+        if not 0 < len(value):
             raise ValueError("text must not be empty")
-        self.__text = text
-
-    # rating ----------------
-
-    @property
-    def rating(self):
-        return self.__rating
-
-    @rating.setter
-    def rating(self, rating):
-        if type(rating) is not int:
+        return value
+        
+    @validates("rating")
+    def validate_rating(self, key, value):
+        if type(value) is not int:
             raise TypeError("rating must be an integer")
-        if not 0 < rating <= 5:
+        if not 0 < value <= 5:
             raise ValueError("rating must be between 1 and 5")
-        self.__rating = rating
+        return value
 
-    # place_id -----------------
+    # def __init__(self, text, rating, place, user):
+    #     super().__init__()
+    #     self.text = text
+    #     self.rating = rating
+    #     self.place = place
+    #     self.user = user
 
-    @property
-    def place_id(self):
-        return self.__place_id
+    # # Getters and setters ---------------------------------
 
-    @place_id.setter
-    def place_id(self, place_id):
-        if type(place_id) is not str:
-            raise TypeError("place_id must be an ID string")
-        self.__place_id = place_id
+    # # text ------------------
 
-    # user_id ------------------
+    # @property
+    # def text(self):
+    #     return self.__text
 
-    @property
-    def user_id(self):
-        return self.__user_id
+    # @text.setter
+    # def text(self, text):
+    #     if type(text) is not str:
+    #         raise TypeError("text must be a string")
+    #     if not 0 < len(text):
+    #         raise ValueError("text must not be empty")
+    #     self.__text = text
 
-    @user_id.setter
-    def user_id(self, user_id):
-        if type(user_id) is not str:
-            raise TypeError("user_id must be an ID string")
-        self.__user_id = user_id
+    # # rating ----------------
+
+    # @property
+    # def rating(self):
+    #     return self.__rating
+
+    # @rating.setter
+    # def rating(self, rating):
+    #     if type(rating) is not int:
+    #         raise TypeError("rating must be an integer")
+    #     if not 0 < rating <= 5:
+    #         raise ValueError("rating must be between 1 and 5")
+    #     self.__rating = rating
+
+    # # place -----------------
+
+    # @property
+    # def place(self):
+    #     return self.__place
+
+    # @place.setter
+    # def place(self, place):
+    #     if type(place) is not Place:
+    #         raise TypeError("place must be a Place")
+    #     self.__place = place
+
+    # # user ------------------
+
+    # @property
+    # def user(self):
+    #     return self.__user
+
+    # @user.setter
+    # def user(self, user):
+    #     if type(user) is not User:
+    #         raise TypeError("user must be a User")
+    #     self.__user = user

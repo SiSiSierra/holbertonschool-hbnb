@@ -87,17 +87,17 @@ class PlaceList(Resource):
                 'latitude': p.latitude,
                 'longitude': p.longitude,
                 'owner': {
-                    'id': owner.id,
-                    'first_name': owner.first_name,
-                    'last_name': owner.last_name,
-                    'email': owner.email
+                    'id': p.owner.id,
+                    'first_name': p.owner.first_name,
+                    'last_name': p.owner.last_name,
+                    'email': p.owner.email
                 },
                 'amenities': [{
                     'id': amenity,
                     'name': facade.get_amenity(amenity).name
                 } for amenity in p.amenities]
             })
-        return out, 200
+        return places, 200
 
 
 @api.route('/<place_id>')

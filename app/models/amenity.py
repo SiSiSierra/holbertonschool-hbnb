@@ -3,7 +3,10 @@
 Classes:
     Amenity(BaseModel)
 """
-from . import BaseModel
+from .baseclass import BaseModel
+from .. import db
+from sqlalchemy.orm import relationship, validates
+from .association_table import place_amenity
 
 
 class Amenity(BaseModel):
@@ -20,19 +23,32 @@ class Amenity(BaseModel):
 
     Functions:
     """
+    __tablename__ = "amenities"
 
-    def __init__(self, name):
-        super().__init__()
-        self.name = name
+    name = db.Column(db.String(128), nullable=False)
+    place_association = relationship('Place', secondary=place_amenity, lazy='subquery', backref=db.backref('amenities', lazy=True))
 
-    @property
-    def name(self):
-        return self.__name
-
-    @name.setter
-    def name(self, name):
-        if type(name) is not str:
+    # Validators -------------------------
+    @validates("name")
+    def validate_name(self, key, value):
+        if type(value) is not str:
             raise TypeError("name must be a string")
-        if len(name) > 50:
+        if len(value) > 50:
             raise ValueError("name cannot be longer than 50 characters")
-        self.__name = name
+        return value
+
+    # def __init__(self, name):
+    #     super().__init__()
+    #     self.name = name
+
+    # @property
+    # def name(self):
+    #     return self.__name
+
+    # @name.setter
+    # def name(self, name):
+    #     if type(name) is not str:
+    #         raise TypeError("name must be a string")
+    #     if len(name) > 50:
+    #         raise ValueError("name cannot be longer than 50 characters")
+    #     self.__name = name
