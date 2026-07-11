@@ -39,11 +39,25 @@ class RequestSetUp():
                 'is_admin': True
                 }
         facade.create_user(self.admin)
+        
+        # Headers -------------
         self.h = {
                 'Content-Type': 'application/json',
                 'accept': 'application/json',
                                 }
         self.h['Authorization'] = f'Bearer {self.auth_user(self.admin)}'
+        
+        # Setup amenities -----------
+        self.amenities = [
+                {'name': 'Wi-Fi'},
+                {'name': 'Pool (Swimming)'},
+                {'name': 'Pool (Table)'}
+                ]
+        response = self.post_things('amenities/', self.amenities)
+        self.amenity_ids = []
+        for a in response:
+            self.amenity_ids.append(a.json['id'])
+        # Setup users ----------
         self.u1 = {
                 'first_name': 'Jane',
                 'last_name': 'Doe',
@@ -56,6 +70,8 @@ class RequestSetUp():
                 'email': 'JohnDoe@mail.com',
                 'password': 'alsoinvis'
                 }
+        
+        # Setup places -----------
         self.p1 = {
                 'title': 'My House',
                 'description': 'It is nice and big and cozy and good!!',
@@ -63,6 +79,8 @@ class RequestSetUp():
                 'latitude': 80.4,
                 'longitude': 110.5
                 }
+
+        # Setup reviews -----------
         self.r1 = {
                 'text': 'It is indeed cozy',
                 'rating': 4
@@ -93,6 +111,7 @@ class RequestSetUp():
                 data=json.dumps(user)
                 )
         return r.json['access_token']
+
 
 class RouteUserTest(unittest.TestCase):
     
@@ -138,10 +157,12 @@ class RoutePlaceTest(unittest.TestCase):
         self.tools.post_things('users/', (self.tools.u1, self.tools.u2))
 
     def testPlacePOST(self):
+        print("Test creation and update of Place ----------")
         token = self.tools.auth_user(self.tools.u1)
         self.tools.h['Authorization'] = f"Bearer {token}"
         response = self.tools.post('places/', self.tools.p1)
         self.assertEqual(response.status_code, 201)
+        self.tools.p1['amenities'] = self.tools.amenity_ids
         places = self.tools.client.get('api/v1/places/', headers=self.tools.h)
         self.assertEqual(len(places.json), 1)
         self.assertEqual(places.json[0]['title'], 'My House')

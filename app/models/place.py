@@ -148,6 +148,15 @@ class Place(BaseModel):
     def amenities(self):
         return self.__amenities
 
+    @amenities.setter
+    def amenities(self, amenities):
+        print(amenities)
+        if type(amenities) is not list or \
+                all(type(x) is not str for x in amenities):
+                    raise TypeError("amenities must be a list of strings")
+        self.__amenities = amenities
+
+
     # --- RELATIONSHIP MANAGEMENT INTERFACES ---
     def add_review(self, review):
         """Appends a new review"""

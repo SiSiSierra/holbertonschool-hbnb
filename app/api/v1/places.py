@@ -140,16 +140,16 @@ class PlaceResource(Resource):
         """Update a place's information"""
         current_user = get_jwt()
         is_admin = current_user.get('is_admin', False)
-        user_id = current_user.get('id')
-        
+        user_id = get_jwt_identity()
         try:
             # Verify existence
             place = facade.get_place(place_id)
+            owner = facade.get_user(place.owner_id)
             # Verify owner / admin
-            if user_id != place.owner_id or not is_admin:
+            if user_id != place.owner_id and not is_admin:
                 return {'error': 'Unauthorised action.'}, 403
             # Update place
-            updated_place = facade.update_place(place_id, data)
+            updated_place = facade.update_place(place_id, api.payload)
             return {
                     'id': place.id,
                     'title': place.title,
@@ -164,8 +164,8 @@ class PlaceResource(Resource):
                         'email': owner.email
                     },
                     'amenities': [{
-                        'id': amenity.id,
-                        'name': amenity.name
+                        'id': amenity,
+                        'name': facade.get_amenity(amenity).name
                     } for amenity in place.amenities]
             }, 200 
         except KeyError as err:
