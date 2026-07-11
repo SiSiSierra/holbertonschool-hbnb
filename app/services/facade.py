@@ -143,30 +143,11 @@ class HBnBFacade:
 
         self.review_repo.update(review_id, review_data)
         return review
-
+        
     def delete_review(self, review_id):
-        # 1. Fetch the review object from memory
         review = self.get_review(review_id)
         if not review:
             return False
 
-        # 2. Wrap the relationship removal in a safe try/except block
-        try:
-            place = review.place
-            if place and hasattr(place, 'reviews') and place.reviews:
-                # Use a list comprehension to filter out the deleted review safely
-                place.reviews = [
-                        r for r in place.reviews
-                        if getattr(r, 'id', None) != review_id
-                        ]
-        except Exception:
-            pass  # Ignore any sync relationship issues so it doesn't block the actual deletion
-
-        # 3. Target the repository storage directly
-        # If your repository uses the string ID key, delete via review_id
-        if review_id in self.review_repo._storage:
-            del self.review_repo._storage[review_id]
-            return True
-
-        # If your repository tracks by object reference value instead of string key
-        return self.review_repo.delete(review)
+        self.review_repo.delete(review_id)
+        return True
