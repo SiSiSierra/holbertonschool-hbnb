@@ -49,7 +49,7 @@ class UserList(Resource):
             '^(\\w|\\.|\\_|\\-)+[@](\\w|\\_|\\-|\\.)+[.]\\w{2,3}$'
         if not re.search(valid_email_regex, user_data['email']):
             return {'error': "email must be in a valid e-mail format"}, 400
-    try:
+        try:
             new_user = facade.create_user(user_data)
             return {
                     'id': new_user.id,
