@@ -82,7 +82,7 @@ class SQLAlchemyRepository(Repository):
     def delete(self, obj_id):
         obj = self.get(obj_id)
         if obj:
-            db.session.delte(obj)
+            db.session.delete(obj)
             db.session.commit()
         
     def get_by_attribute(self, attr_name, attr_value):
