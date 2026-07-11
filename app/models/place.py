@@ -43,7 +43,6 @@ class Place(BaseModel):
     longitude = db.Column(db.Float, nullable=False)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     review_child = relationship('Review', backref='place', lazy=True)
-    amenity_association = relationship('Amenity', secondary=place_amenity, lazy='subquery', backref=db.backref('places', lazy=True))
 
     # Validators ---------------
     @validates("title")
