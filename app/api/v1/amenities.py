@@ -1,4 +1,5 @@
 from flask_restx import Namespace, Resource, fields
+from flask_jwt_extended import jwt_required, get_jwt
 from app.services import facade
 import json
 
@@ -17,21 +18,26 @@ amenity_model_get = api.model('Amenity_GET', {
 
 @api.route('/')
 class AmenityList(Resource):
+    @jwt_required()
     @api.expect(amenity_model)
     @api.response(201, 'Amenity successfully created')
     @api.response(400, 'Invalid input data')
-    @api.marshal_with(amenity_model_get)
+    @api.response(401, 'No authorization provided')
+    @api.response(403, 'Admin privileges required')
     def post(self):
         """Register a new amenity"""
-        amenity_data = api.payload
-        
+        current_user = get_jwt()
+        if not current_user.get('is_admin'):
+            return {'error': 'Admin privileges required'}, 403
         try:
-            new_amenity = facade.create_amenity(amenity_data)
-            return new_amenity, 201
-        except Exception as err:
-            return {'error': str(err)}, 400  
-        # new_amenity = facade.create_amenity(amenity_data)
-        # return {'id': new_amenity.id, 'name': new_amenity.name}, 201
+            amenity = facade.create_amenity(api.payload)
+            return {
+                    'id': amenity.id,
+                    'name': amenity.name
+                    }
+        except (TypeError, ValueError) as err:
+            return {'err': str(err)}, 400
+
 
     @api.marshal_with(amenity_model_get, code=200, as_list=True)
     def get(self):
@@ -42,24 +48,41 @@ class AmenityList(Resource):
 @api.route('/<amenity_id>')
 class AmenityResource(Resource):
     @api.marshal_with(amenity_model_get, code=200)
-    @api.response(200, 'Amenity details retrieved successfully')
+    @api.response(200, 'Amenity updated successfully')
     @api.response(404, 'Amenity not found')
     def get(self, amenity_id):
         """Get amenity details by ID"""
-        amenity = facade.get_amenity(amenity_id)
-        if not amenity:
-            return {'error': 'Amenity not found'}, 404
-        return {'id': amenity.id, 'name': amenity.name}
+        try:
+            amenity = facade.get_amenity(amenity_id)
+            return {
+                'id': amenity.id,
+                'name': amenity.name
+                }
+        except KeyError as err:
+            return {'error': str(err)}, 404
+        
 
     @api.expect(amenity_model)
     @api.response(200, 'Amenity updated successfully')
     @api.response(404, 'Amenity not found')
+    @api.response(403, 'Admin privileges required')
+    @api.response(401, 'No authorization provided')
     @api.response(400, 'Invalid input data')
     def put(self, amenity_id):
         """Update an amenity's information"""
-        amenity = facade.get_amenity(amenity_id)
-        if not amenity:
-            return {'error': 'Amenity not found'}, 404
+        current_user = get_jwt()
+        if not current_user.get('is_admin'):
+            return {'error': 'Admin privileges required'}, 403
+
         new_data = api.payload
-        facade.update_amenity(amenity_id, new_data)
-        return {'id': amenity.id, 'name': amenity.name}
+        try:
+            facade.get_amenity(amenity_id)
+            amenity = facade.update_amenity(amenity_id, new_data)
+            return {
+                    'id': amenity.id,
+                    'name': amenity.name
+                    }
+        except KeyError as err:
+            return {'error': str(err)}, 404
+        except Exception as err:
+            return {'error': str(err)}, 400

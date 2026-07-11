@@ -20,8 +20,8 @@ class Review(BaseModel):
         - id: string
         - text: string
         - rating: int
-        - place: Place
-        - user: User
+        - place_id: UUID
+        - user_id: UUID
         - created_at: datetime
         - updated_at: datetime
 
