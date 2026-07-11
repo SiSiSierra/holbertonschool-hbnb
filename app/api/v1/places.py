@@ -1,5 +1,6 @@
 from flask_restx import Namespace, Resource, fields
 from flask import request
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from app.services import facade
 
 api = Namespace('places', description='Place operations')
@@ -25,7 +26,6 @@ place_model = api.model('Place_POST', {
         required=True, description='Latitude of the place'),
     'longitude': fields.Float(
         required=True, description='Longitude of the place'),
-    'owner_id': fields.String(required=True, description='ID of the owner')
 })
 
 place_model_get = api.model('Place_GET', {
@@ -38,24 +38,26 @@ place_model_get = api.model('Place_GET', {
     'owner': fields.Nested(user_model, description=\
             'Owner of the place'),
     'amenities': fields.List(fields.Nested(amenity_model), description=\
-            'Amenities this place hosts'),
+            'List of amenity IDs this place hosts'),
 })
 
 
 @api.route('/')
 class PlaceList(Resource):
+    @jwt_required()
     @api.expect(place_model)
     @api.response(201, 'Place successfully created')
     @api.response(400, 'Invalid input data')
     def post(self):
         """Register a new place"""
+        current_user = get_jwt_identity()
         data = request.json
+        data['owner_id'] = current_user
         try:
             # Delegate handling to the facade layer
             new_place = facade.create_place(data)
 
             # Return serialized summary of the newly created object
-            owner = facade.get_user(new_place.owner)
             return {
                 'id': new_place.id,
                 'title': new_place.title,
@@ -63,7 +65,7 @@ class PlaceList(Resource):
                 'price': new_place.price,
                 'latitude': new_place.latitude,
                 'longitude': new_place.longitude,
-                'owner_id': owner.id
+                'owner_id': new_place.owner_id
             }, 201
         except ValueError as err:
             # Catches domain validation errors
@@ -76,7 +78,7 @@ class PlaceList(Resource):
         places = facade.get_all_places()
         out = []
         for p in places:
-            owner = facade.get_user(p.owner)
+            owner = facade.get_user(p.owner_id)
             out.append({
                 'id': p.id,
                 'title': p.title,
@@ -91,8 +93,8 @@ class PlaceList(Resource):
                     'email': owner.email
                 },
                 'amenities': [{
-                    'id': amenity.id,
-                    'name': amenity.name
+                    'id': amenity,
+                    'name': facade.get_amenity(amenity).name
                 } for amenity in p.amenities]
             })
         return out, 200
@@ -105,12 +107,11 @@ class PlaceResource(Resource):
     @api.response(404, 'Place not found')
     def get(self, place_id):
         """Get place details by ID"""
-        place = facade.get_place(place_id)
-        if not place:
-            return {'error': 'Place not found'}, 404
-
-        # Explicit serialization building the complex nested relation contracts
-        owner = facade.get_user(place.owner)
+        try:
+            place = facade.get_place(place_id)
+            owner = facade.get_user(place.owner_id)
+        except KeyError as err:
+            return {'err': str(err)}, 404
         return {
             'id': place.id,
             'title': place.title,
@@ -125,25 +126,51 @@ class PlaceResource(Resource):
                 'email': owner.email
             },
             'amenities': [{
-                'id': amenity.id,
-                'name': amenity.name
+                'id': amenity,
+                'name': facade.get_amenity(amenity).name
             } for amenity in place.amenities]
         }, 200
 
-    @api.expect(place_model, validate=False)  # validate=False allows partial data structures during PUT updates
+    @jwt_required()
+    @api.expect(place_model, validate=False)
     @api.response(200, 'Place updated successfully')
     @api.response(404, 'Place not found')
     @api.response(400, 'Invalid input data')
     def put(self, place_id):
         """Update a place's information"""
-        data = request.json
+        current_user = get_jwt()
+        is_admin = current_user.get('is_admin', False)
+        user_id = get_jwt_identity()
         try:
-            updated_place = facade.update_place(place_id, data)
-            if not updated_place:
-                return {'error': 'Place not found'}, 404
-
-            return {'message': 'Place updated successfully'}, 200
-        except ValueError as err:
+            # Verify existence
+            place = facade.get_place(place_id)
+            owner = facade.get_user(place.owner_id)
+            # Verify owner / admin
+            if user_id != place.owner_id and not is_admin:
+                return {'error': 'Unauthorised action.'}, 403
+            # Update place
+            updated_place = facade.update_place(place_id, api.payload)
+            return {
+                    'id': place.id,
+                    'title': place.title,
+                    'description': place.description,
+                    'price': place.price,
+                    'latitude': place.latitude,
+                    'longitude': place.longitude,
+                    'owner': {
+                        'id': owner.id,
+                        'first_name': owner.first_name,
+                        'last_name': owner.last_name,
+                        'email': owner.email
+                    },
+                    'amenities': [{
+                        'id': amenity,
+                        'name': facade.get_amenity(amenity).name
+                    } for amenity in place.amenities]
+            }, 200 
+        except KeyError as err:
+            return {'error': str(err)}, 404
+        except (TypeError, ValueError) as err:
             return {'error': str(err)}, 400
 
 
