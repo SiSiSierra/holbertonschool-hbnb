@@ -7,6 +7,7 @@ from .baseclass import BaseModel
 from .user import User
 from .place import Place
 from .. import db
+from sqlalchemy.orm import validates
 
 
 class Review(BaseModel):
@@ -31,6 +32,21 @@ class Review(BaseModel):
     rating = db.Column(db.Integer, nullable=False)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     place_id = db.Column(db.String(36), db.ForeignKey('places.id'), nullable=False)
+
+    # Validators ----------------------------
+    @validates("text")
+    def validate_text(self, key, value):
+        if type(value) is not str:
+            raise TypeError("text must be a string")
+        if not 0 < len(value):
+            raise ValueError("text must not be empty")
+        
+    @validates("rating")
+    def validate_rating(self, key, value):
+        if type(value) is not int:
+            raise TypeError("rating must be an integer")
+        if not 0 < value <= 5:
+            raise ValueError("rating must be between 1 and 5")
 
     # def __init__(self, text, rating, place, user):
     #     super().__init__()

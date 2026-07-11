@@ -7,7 +7,7 @@ from .baseclass import BaseModel
 import re
 from .. import bcrypt, db
 import uuid
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, validates
 
 
 
@@ -42,6 +42,21 @@ reviews and places
     is_admin = db.Column(db.Boolean, default=False)
     place_child = relationship('Place', backref='owner', lazy=True)
     review_child = relationship('Review', backref='user', lazy=True)
+
+    # Validators -----------------------------
+    @validates("first_name")
+    def validate_first_name(self, key, name):
+        if not 0 < len(name) <= 50:
+            raise ValueError(
+                "first_name must be between 1 and 50 characters long"
+            )
+        
+    @validates("last_name")
+    def validate_last_name(self, key, name):
+        if not 0 < len(name) <= 50:
+            raise ValueError(
+                "last_name must be between 1 and 50 characters long"
+            )
 
     # Password hashing and comparison ---------------------
 

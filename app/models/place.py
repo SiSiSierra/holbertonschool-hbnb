@@ -7,7 +7,7 @@ from .baseclass import BaseModel
 from .user import User
 from .amenity import Amenity
 from .. import db
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, validates
 from .association_table import place_amenity
 
 
@@ -43,8 +43,46 @@ class Place(BaseModel):
     longitude = db.Column(db.Float, nullable=False)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     review_child = relationship('Review', backref='place', lazy=True)
-    amenity_association = relationship('Amenity', secondary=place_amenity, lazy='subquery', backref=db.backref('place', lazy=True))
+    amenity_association = relationship('Amenity', secondary=place_amenity, lazy='subquery', backref=db.backref('places', lazy=True))
 
+    # Validators ---------------
+    @validates("title")
+    def validate_title(self, key, data):
+        if not 0 < len(data) <= 50:
+            raise ValueError(
+                "title must be between 1 and 100 characters long"
+            )
+        
+    @validates("price")
+    def validate_price(self, key, value):
+        try:
+            val = float(value)
+        except (TypeError, ValueError):
+            raise ValueError("Price must be a valid number.")
+        if val < 0:
+            raise ValueError("Price must be a non-negative float.")
+
+    @validates("latitude")
+    def validate_latitude(self, key, value):
+        try:
+            val = float(value)
+        except (TypeError, ValueError):
+            raise ValueError("Latitude must be a valid number.")
+        if not (-90.0 <= val <= 90.0):
+            raise ValueError(
+                "Latitude must be between -90.0 and 90.0 inclusive."
+                )
+        
+    @validates("longitude")
+    def validate_latitude(self, key, value):
+        try:
+            val = float(value)
+        except (TypeError, ValueError):
+            raise ValueError("Longitude must be a valid number.")
+        if not (-180.0 <= val <= 180.0):
+            raise ValueError(
+                "Longitude must be between -180.0 and 180.0 inclusive."
+                )
 
     # def __init__(self, title, description, price, latitude, longitude, owner):
     #     super().__init__()

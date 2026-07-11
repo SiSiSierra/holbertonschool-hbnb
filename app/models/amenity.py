@@ -5,7 +5,7 @@ Classes:
 """
 from .baseclass import BaseModel
 from .. import db
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, validates
 from .association_table import place_amenity
 
 
@@ -26,6 +26,14 @@ class Amenity(BaseModel):
     __tablename__ = "amenities"
     name = db.Column(db.String(128), nullable=False)
     place_association = relationship('Place', secondary=place_amenity, lazy='subquery', backref=db.backref('amenities', lazy=True))
+
+    # Validators -------------------------
+    @validates("name")
+    def validate_name(self, key, value):
+        if type(value) is not str:
+            raise TypeError("name must be a string")
+        if len(value) > 50:
+            raise ValueError("name cannot be longer than 50 characters")
 
     # def __init__(self, name):
     #     super().__init__()

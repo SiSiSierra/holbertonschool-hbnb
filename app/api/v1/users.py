@@ -50,13 +50,11 @@ class UserList(Resource):
         if not re.search(valid_email_regex, user_data['email']):
             return {'error': "email must be in a valid e-mail format"}, 400
 
-        new_user = facade.create_user(user_data)
-        return {
-                'id': new_user.id,
-                'first_name': new_user.first_name,
-                'last_name': new_user.last_name,
-                'email': new_user.email
-                }, 201
+        try:
+            new_user = facade.create_user(user_data)
+            return new_user, 201
+        except Exception as err:
+            return {'error': str(err)}, 400            
 
     # @api.response(200, 'OK')
     @api.marshal_with(user_model_get, code=200, as_list=True)
