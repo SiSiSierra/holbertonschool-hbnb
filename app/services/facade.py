@@ -164,7 +164,7 @@ class HBnBFacade:
         review = self.get_review(review_id)
         
         # Verify the user changing is the user owning
-        if review_data.get('user_id') == review.user_id:
+        if review_data.get('user_id') != review.user_id:
             return {'error': 'Unauthorised action.'}, 403
 
         self.review_repo.update(review_id, review_data)
