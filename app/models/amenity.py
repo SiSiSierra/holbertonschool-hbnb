@@ -24,6 +24,7 @@ class Amenity(BaseModel):
     Functions:
     """
     __tablename__ = "amenities"
+
     name = db.Column(db.String(128), nullable=False)
     place_association = relationship('Place', secondary=place_amenity, lazy='subquery', backref=db.backref('amenities', lazy=True))
 
@@ -34,6 +35,7 @@ class Amenity(BaseModel):
             raise TypeError("name must be a string")
         if len(value) > 50:
             raise ValueError("name cannot be longer than 50 characters")
+        return value
 
     # def __init__(self, name):
     #     super().__init__()

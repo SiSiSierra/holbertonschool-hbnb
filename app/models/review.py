@@ -40,6 +40,7 @@ class Review(BaseModel):
             raise TypeError("text must be a string")
         if not 0 < len(value):
             raise ValueError("text must not be empty")
+        return value
         
     @validates("rating")
     def validate_rating(self, key, value):
@@ -47,6 +48,7 @@ class Review(BaseModel):
             raise TypeError("rating must be an integer")
         if not 0 < value <= 5:
             raise ValueError("rating must be between 1 and 5")
+        return value
 
     # def __init__(self, text, rating, place, user):
     #     super().__init__()

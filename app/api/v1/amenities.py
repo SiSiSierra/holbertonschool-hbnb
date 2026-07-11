@@ -20,12 +20,18 @@ class AmenityList(Resource):
     @api.expect(amenity_model)
     @api.response(201, 'Amenity successfully created')
     @api.response(400, 'Invalid input data')
+    @api.marshal_with(amenity_model_get)
     def post(self):
         """Register a new amenity"""
         amenity_data = api.payload
-
-        new_amenity = facade.create_amenity(amenity_data)
-        return {'id': new_amenity.id, 'name': new_amenity.name}, 201
+        
+        try:
+            new_amenity = facade.create_amenity(amenity_data)
+            return new_amenity, 201
+        except Exception as err:
+            return {'error': str(err)}, 400  
+        # new_amenity = facade.create_amenity(amenity_data)
+        # return {'id': new_amenity.id, 'name': new_amenity.name}, 201
 
     @api.marshal_with(amenity_model_get, code=200, as_list=True)
     def get(self):

@@ -50,6 +50,7 @@ reviews and places
             raise ValueError(
                 "first_name must be between 1 and 50 characters long"
             )
+        return name
         
     @validates("last_name")
     def validate_last_name(self, key, name):
@@ -57,6 +58,7 @@ reviews and places
             raise ValueError(
                 "last_name must be between 1 and 50 characters long"
             )
+        return name
 
     # Password hashing and comparison ---------------------
 

@@ -47,11 +47,12 @@ class Place(BaseModel):
 
     # Validators ---------------
     @validates("title")
-    def validate_title(self, key, data):
-        if not 0 < len(data) <= 50:
+    def validate_title(self, key, value):
+        if not 0 < len(value) <= 50:
             raise ValueError(
                 "title must be between 1 and 100 characters long"
             )
+        return value
         
     @validates("price")
     def validate_price(self, key, value):
@@ -61,6 +62,7 @@ class Place(BaseModel):
             raise ValueError("Price must be a valid number.")
         if val < 0:
             raise ValueError("Price must be a non-negative float.")
+        return value
 
     @validates("latitude")
     def validate_latitude(self, key, value):
@@ -72,6 +74,7 @@ class Place(BaseModel):
             raise ValueError(
                 "Latitude must be between -90.0 and 90.0 inclusive."
                 )
+        return value
         
     @validates("longitude")
     def validate_latitude(self, key, value):
@@ -83,6 +86,7 @@ class Place(BaseModel):
             raise ValueError(
                 "Longitude must be between -180.0 and 180.0 inclusive."
                 )
+        return value
 
     # def __init__(self, title, description, price, latitude, longitude, owner):
     #     super().__init__()
