@@ -2,8 +2,10 @@ from flask import Flask
 from flask_restx import Api
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
+from flask_sqlalchemy import SQLAlchemy
 
 bcrypt = Bcrypt()
+db = SQLAlchemy()
 
 from app.api.v1.users import api as users_ns  # noqa: E402
 from app.api.v1.amenities import api as amenities_ns  # noqa: E402
@@ -24,6 +26,9 @@ def create_app(config_class="config.DevelopmentConfig"):
             description='HBnB Application API',
             doc='/api/v1/'
             )
+
+    #Initialise SQLAlchemy
+    db.init_app(app)
 
     # Register the users namespace
     api.add_namespace(users_ns, path='/api/v1/users')

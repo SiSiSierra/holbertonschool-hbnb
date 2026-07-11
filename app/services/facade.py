@@ -9,7 +9,6 @@ from app.persistence.review_repository import ReviewRepository
 from app.persistence.amenity_repository import AmenityRepository
 import re
 
-
 class HBnBFacade:
     def __init__(self):
         self.user_repo = UserRepository()
@@ -24,10 +23,6 @@ class HBnBFacade:
                 'password': 'HBNB',
                 'is_admin': True
                 }
-        try:
-            self.get_user_by_email(admin['email'])
-        except KeyError:
-            self.create_user(admin)
 
     # ----- USER METHODS -----
 
@@ -130,7 +125,6 @@ class HBnBFacade:
             place_id=review_data.get('place_id')
         )
         self.review_repo.add(new_review)
-        place.reviews.append(new_review.id)
         return new_review
 
 
