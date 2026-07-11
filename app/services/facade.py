@@ -12,6 +12,18 @@ class HBnBFacade:
         self.review_repo = InMemoryRepository()
         self.amenity_repo = InMemoryRepository()
 
+        admin = {
+                'first_name': 'admin',
+                'last_name': 'user',
+                'email': 'admin@user.com',
+                'password': 'HBNB',
+                'is_admin': True
+                }
+        try:
+            self.get_user_by_email(admin['email'])
+        except KeyError:
+            self.create_user(admin)
+
     # ----- USER METHODS -----
 
     def create_user(self, user_data):
@@ -45,7 +57,10 @@ class HBnBFacade:
         return amenity
 
     def get_amenity(self, amenity_id):
-        return self.amenity_repo.get(amenity_id)
+        a = self.amenity_repo.get(amenity_id)
+        if not a:
+            raise KeyError("Amenity not found")
+        return a
 
     def get_all_amenities(self):
         return self.amenity_repo.get_all()
@@ -100,37 +115,17 @@ class HBnBFacade:
 
         Returns: Created review as dict, or error as dict, with HTTP code
         """
-        # Verify user and place exist
-        user = self.get_user(review_data.get('user_id'))
         place = self.get_place(review_data.get('place_id'))
-
-        # Verify user isn't reviewing themselves
-        if user.id == place.owner_id:
-            return {'error': 'You cannot review your own place'}, 400
-        
-        # Verify user hasn't already reviewed this place
-        for r in self.get_reviews_by_place(place.id):
-            if r.user_id == user.id:
-                return {'error': 'You have already reviewed this place'}, \
-                        403
-
         # Create review
         new_review = Review(
             text=review_data.get('text'),
             rating=review_data.get('rating'),
-            user_id=user.id,
-            place_id=place.id
+            user_id=review_data.get('user_id'),
+            place_id=review_data.get('place_id')
         )
         self.review_repo.add(new_review)
         place.reviews.append(new_review.id)
-
-        return {
-                'id': new_review.id,
-                'text': new_review.text,
-                'rating': new_review.rating,
-                'user_id': new_review.user_id,
-                'place_id': new_review.place_id
-            }, 201
+        return new_review
 
 
     def get_review(self, review_id):
@@ -162,19 +157,10 @@ class HBnBFacade:
         """
         # Verify review exists
         review = self.get_review(review_id)
-        
         # Verify the user changing is the user owning
         if review_data.get('user_id') != review.user_id:
             return {'error': 'Unauthorised action.'}, 403
-
         self.review_repo.update(review_id, review_data)
-        return {
-                'id': review.id,
-                'text': review.text,
-                'rating': review.rating,
-                'user_id': review.user_id,
-                'place_id': review.place_id
-                }, 200
 
     def delete_review(self, review_id, user_id):
         """ Delete a review
@@ -187,16 +173,11 @@ class HBnBFacade:
         """
         # Verify review exists
         review = self.get_review(review_id)
-
         # Verify user deleting is the user owning
         if user_id != review.user_id:
             return {'error': 'Unauthorized action'}, 403
-        
         # Remove review from associated place
         place = facade.get_place(review.place_id)
         place.reviews.remove(review_id)
-        
         # Remove review from repo
         self.review_repo.delete(review_id)
-        
-        return {'message': 'Review delected successfully'}, 200

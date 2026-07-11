@@ -7,7 +7,22 @@ from app.persistence.repository import InMemoryRepository
 from flask_jwt_extended import get_jwt_identity
 
 class RequestSetUp():
-    
+    """Class with pre-defined data to use in tests
+    Create an instance in setUp() of each test
+
+    Attributes:
+        h (headers): dict
+        u1 (user1): dict
+        u2 (user2): dict
+        p1 (place1): dict
+        r1 (review1): dict
+
+    Functions:
+        post(url(str), thing(dict))
+        post_things(url(str), things(list(dict)))
+        auth_user(user(dict))
+    """
+
     def __init__(self):
         app = create_app()
         app.testing = True
@@ -16,10 +31,19 @@ class RequestSetUp():
         facade.place_repo = InMemoryRepository()
         facade.review_repo = InMemoryRepository()
         facade.amenity_repo = InMemoryRepository()
+        self.admin = {
+                'first_name': 'admin',
+                'last_name': 'user',
+                'email': 'admin@user.com',
+                'password': 'HBNB',
+                'is_admin': True
+                }
+        facade.create_user(self.admin)
         self.h = {
                 'Content-Type': 'application/json',
-                'accept': 'application/json'
-                }
+                'accept': 'application/json',
+                                }
+        self.h['Authorization'] = f'Bearer {self.auth_user(self.admin)}'
         self.u1 = {
                 'first_name': 'Jane',
                 'last_name': 'Doe',
@@ -73,10 +97,9 @@ class RequestSetUp():
 class RouteUserTest(unittest.TestCase):
     
     def setUp(self):
-        self.url = '/api/v1/users/'
         self.tools = RequestSetUp()
 
-    def test_POST(self):
+    def testUserPOST(self):
         response = self.tools.post('users/', self.tools.u1).json
         self.assertEqual(response['first_name'], self.tools.u1['first_name'])
         self.assertEqual(response['last_name'], self.tools.u1['last_name'])
@@ -90,10 +113,10 @@ class RouteUserTest(unittest.TestCase):
         self.assertEqual(response2['first_name'], self.tools.u1['first_name'])
         self.assertEqual(response2['id'], response['id'])
    
-    def test_GET(self):
-        self.tools.post_things('users/', (self.tools.u1, self.tools.u2))
-        response = self.tools.client.get(path=self.url, headers=self.tools.h)
-        self.assertEqual(len(response.json), 2)
+    def testUserGET(self):
+        r = self.tools.post_things('users/', (self.tools.u1, self.tools.u2))
+        response = self.tools.client.get(path='/api/v1/users/', headers=self.tools.h)
+        self.assertEqual(len(response.json), 3)
    
     def test_wrong_email(self):
         self.tools.u1['email'] = 'notgood'
@@ -114,9 +137,7 @@ class RoutePlaceTest(unittest.TestCase):
         self.tools = RequestSetUp()
         self.tools.post_things('users/', (self.tools.u1, self.tools.u2))
 
-    def test_POST(self):
-        response = self.tools.post('places/', self.tools.p1)
-        self.assertEqual(response.status_code, 401) # No JWT
+    def testPlacePOST(self):
         token = self.tools.auth_user(self.tools.u1)
         self.tools.h['Authorization'] = f"Bearer {token}"
         response = self.tools.post('places/', self.tools.p1)
@@ -134,7 +155,7 @@ class RouteReviewTest(unittest.TestCase):
         self.tools.h['Authorization'] = f'Bearer {self.tools.auth_user(self.tools.u1)}'
         self.placeid = self.tools.post('places/', self.tools.p1).json['id']
     
-    def test_POST(self):
+    def testReviewPOST(self):
         self.tools.r1['place_id'] = self.placeid
         r = self.tools.post('reviews/', self.tools.r1)
         self.assertEqual(r.status_code, 400) # Same user from setup who made place

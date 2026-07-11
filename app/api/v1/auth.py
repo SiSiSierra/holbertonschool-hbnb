@@ -26,10 +26,12 @@ class Login(Resource):
     def post(self):
         """ Authenticate user and return a JWT token """
         credentials = api.payload
-
         # Check if the provided user ID exists and if the password is correct
-        user = facade.get_user_by_email(credentials['email'])
-        if not user or not user.verify_password(credentials['password']):
+        try:
+            user = facade.get_user_by_email(credentials['email'])
+            if not user.verify_password(credentials['password']):
+                raise KeyError
+        except KeyError:
             return {'error': 'Invalid credentials'}, 401
 
         # Create and return a JWT token with the respective is_admin attribute

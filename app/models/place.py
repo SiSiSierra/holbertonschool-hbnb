@@ -150,10 +150,13 @@ class Place(BaseModel):
 
     # --- RELATIONSHIP MANAGEMENT INTERFACES ---
     def add_review(self, review):
-        """Appends a new review instance to the place tracking log"""
+        """Appends a new review"""
+        if type(review) is not str:
+            raise TypeError("review must be an ID as string")
         self.reviews.append(review)
 
     def add_amenity(self, amenity):
-        """Appends a new amenity instance to the place configuration array"""
-        if amenity not in self.amenities:
-            self.amenities.append(amenity)
+        """Appends a new amenity iny"""
+        if type(amenity) is not str:
+            raise("amenity must be an ID as string")
+        self.amenities.append(amenity)

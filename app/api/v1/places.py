@@ -1,6 +1,6 @@
 from flask_restx import Namespace, Resource, fields
 from flask import request
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from app.services import facade
 
 api = Namespace('places', description='Place operations')
@@ -38,7 +38,7 @@ place_model_get = api.model('Place_GET', {
     'owner': fields.Nested(user_model, description=\
             'Owner of the place'),
     'amenities': fields.List(fields.Nested(amenity_model), description=\
-            'Amenities this place hosts'),
+            'List of amenity IDs this place hosts'),
 })
 
 
@@ -93,8 +93,8 @@ class PlaceList(Resource):
                     'email': owner.email
                 },
                 'amenities': [{
-                    'id': amenity.id,
-                    'name': amenity.name
+                    'id': amenity,
+                    'name': facade.get_amenity(amenity).name
                 } for amenity in p.amenities]
             })
         return out, 200
@@ -107,12 +107,11 @@ class PlaceResource(Resource):
     @api.response(404, 'Place not found')
     def get(self, place_id):
         """Get place details by ID"""
-        place = facade.get_place(place_id)
-        if not place:
-            return {'error': 'Place not found'}, 404
-
-        # Explicit serialization building the complex nested relation contracts
-        owner = facade.get_user(place.owner_id)
+        try:
+            place = facade.get_place(place_id)
+            owner = facade.get_user(place.owner_id)
+        except KeyError as err:
+            return {'err': str(err)}, 404
         return {
             'id': place.id,
             'title': place.title,
@@ -127,32 +126,51 @@ class PlaceResource(Resource):
                 'email': owner.email
             },
             'amenities': [{
-                'id': amenity.id,
-                'name': amenity.name
+                'id': amenity,
+                'name': facade.get_amenity(amenity).name
             } for amenity in place.amenities]
         }, 200
 
     @jwt_required()
-    @api.expect(place_model, validate=False)  # validate=False allows partial data structures during PUT updates
+    @api.expect(place_model, validate=False)
     @api.response(200, 'Place updated successfully')
     @api.response(404, 'Place not found')
     @api.response(400, 'Invalid input data')
     def put(self, place_id):
         """Update a place's information"""
-        data = request.json
-
-        # Verify place exists
-        place = facade.get_place(place_id)
-
-        # Only the owner can update a place
-        if get_jwt_identity() != facade.get_place(place_id).owner_id:
-            return {'error': 'Unauthorised action.'}, 403
-
-        # Update place
+        current_user = get_jwt()
+        is_admin = current_user.get('is_admin', False)
+        user_id = current_user.get('id')
+        
         try:
+            # Verify existence
+            place = facade.get_place(place_id)
+            # Verify owner / admin
+            if user_id != place.owner_id or not is_admin:
+                return {'error': 'Unauthorised action.'}, 403
+            # Update place
             updated_place = facade.update_place(place_id, data)
-            return {'message': 'Place updated successfully'}, 200
-        except ValueError as err:
+            return {
+                    'id': place.id,
+                    'title': place.title,
+                    'description': place.description,
+                    'price': place.price,
+                    'latitude': place.latitude,
+                    'longitude': place.longitude,
+                    'owner': {
+                        'id': owner.id,
+                        'first_name': owner.first_name,
+                        'last_name': owner.last_name,
+                        'email': owner.email
+                    },
+                    'amenities': [{
+                        'id': amenity.id,
+                        'name': amenity.name
+                    } for amenity in place.amenities]
+            }, 200 
+        except KeyError as err:
+            return {'error': str(err)}, 404
+        except (TypeError, ValueError) as err:
             return {'error': str(err)}, 400
 
 
