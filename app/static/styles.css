@@ -29,7 +29,7 @@ nav a {
     margin-left: 1rem;
 }
 
-.login-button, .place-card > a {
+.login-button, .details-button {
     background-color: red;
     color: white;
     border-radius: 5px;
@@ -77,7 +77,7 @@ footer {
     flex-wrap: wrap;
 }
 
-form, .place-card, .review-card {
+#login-form, #review-form, .place-card, .review-card {
     display: flex;
     margin: 20px;
     flex-direction: column;
@@ -92,4 +92,56 @@ form, .place-card, .review-card {
     gap: 10px;
     background-color: #FFFFFF;
     text-align: center;
+}
+
+#place-details {
+    width: 100%;
+    text-align: center;
+}
+
+#place-info {
+    display: flex;
+    margin: 20px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    width: fill;
+    height: 50%;
+    box-shadow: 0px 0px 5px 5px #E0E0E0;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    padding: 10px;
+    gap: 10px;
+    background-color: #FFFFFF;
+    text-align: center;
+}
+
+#reviews, #add-review {
+    width: 100%;
+    text-align: center;
+}
+
+#add-review {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
+
+#reviews > ul {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+#place-info > dt {
+    flex: 1 0 30%;
+    text-align: right;
+    font-weight: bold;
+}
+
+#place-info > dd {
+    flex: 1 0 60%;
+    text-align: left;
 }
