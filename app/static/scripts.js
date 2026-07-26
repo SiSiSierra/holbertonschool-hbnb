@@ -15,19 +15,19 @@ function getCookieByName(name) {
 document.addEventListener('DOMContentLoaded', () => {
 
   // Remove the login button if the user has a cookie
-  if (getCookieByName('token')) {
+  const cookie = getCookieByName('token');
+  if (cookie) {
     document.getElementById('login-link').remove();
   }
-
+  // Redirect if page is
 
   // Add login functionality if this page is login.html
   const loginForm = document.getElementById('login-form');
   if (loginForm) {
     loginForm.addEventListener('submit', async (event) => {
       event.preventDefault();
-      form = document.getElementById('login-form');
       // Send form data to login function
-      loginUser(form.elements['email'].value, form.elements['password'].value)
+      loginUser(loginForm.elements['email'].value, loginForm.elements['password'].value)
     });
   }
 
@@ -75,6 +75,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load place details from ID
     const param = window.location.search.split("=")[1];
     getPlace(param);
+  }
+
+
+  // Run this if page is add review
+  if (document.title === 'Add Review') {
+    if (!cookie) {
+      document.location.href = 'index';
+    }
+  }
+
+  // Add submit function to review form if it exists
+  const form = document.getElementById('review-form');
+  if (form) {
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      const param = window.location.search.split("=")[1]
+      // Send data to submit function
+      submitReview(form, param);
+    });
   }
 });
 
@@ -307,16 +326,12 @@ async function getPlace(id) {
   // Add list to section
   section2.appendChild(reviewsList);
 
-  // Add function to review form at bottom of page
+  // Run if this page has a review form
+  // Add function to review form
   if (cookie) {
     document.getElementById('add-review').style.display = 'flex';
   }
-  const form = document.getElementById('review-form');
-  form.addEventListener('submit', async event => {
-    event.preventDefault();
-    // Send data to submit function
-    submitResponse = await submitReview(form, id);
-  })
+
 }
 
 
