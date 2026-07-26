@@ -70,18 +70,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // Run this if page is place detail
   const detail = document.getElementById('place-details')
   if (detail) {
-    // Disable review box if no login cookie
-    const cookie = getCookieByName('token');
-    if (!cookie) {
-      document.getElementById('add-review').style.display = 'None';
-    }
+    // review form should be hidden by default
+    document.getElementById('add-review').style.display = 'None';
     // Load place details from ID
     const param = window.location.search.split("=")[1];
     getPlace(param);
   }
 });
 
-//
+
+// Handle login request
 async function loginUser(email, password) {
   // Add a loading / message box while waiting
   const message = document.getElementById('login-form-message');
@@ -106,6 +104,7 @@ async function loginUser(email, password) {
     document.location.href = 'index';
   }
 }
+
 
 // Send request for all places from api
 async function getAllPlaces() {
@@ -179,7 +178,7 @@ async function getPlace(id) {
   // Add JWT if we have it in cookie
   const cookie = getCookieByName('token');
   if (cookie) {
-    headerObj['Authorizaton'] = 'bearer ' + cookie;
+    headerObj['Authorization'] = 'Bearer ' + cookie;
   }
   // Send fetch
   const placeResponse = await fetch('http://localhost:5000/api/v1/places/' + id, {
@@ -307,5 +306,48 @@ async function getPlace(id) {
   }
   // Add list to section
   section2.appendChild(reviewsList);
+
+  // Add function to review form at bottom of page
+  if (cookie) {
+    document.getElementById('add-review').style.display = 'flex';
+  }
+  const form = document.getElementById('review-form');
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    // Send data to submit function
+    submitResponse = await submitReview(form, id);
+  })
 }
 
+
+// Function to submit a review on either place details page or add_review
+async function submitReview(form, place) {
+  // Add a loading / message box while waiting
+  const message = document.createElement('p');
+  message.textContent = 'Processing your request...'
+  form.appendChild(message);
+  const headerObj = {
+    'Content-Type': 'application/json'
+  };
+  // Add JWT if we have it in cookie
+  const cookie = getCookieByName('token');
+  if (cookie) {
+    headerObj['Authorization'] = 'Bearer ' + cookie;
+  }
+  const response = await fetch('http://localhost:5000/api/v1/reviews', {
+    method: 'POST',
+    headers: headerObj,
+    body: JSON.stringify({ text: form['review'].value, rating: parseInt(form['rating'].value), place_id: place})
+  });
+  if (response.status === 403) {
+    message.textContent = 'Sorry, you aren\'t permitted to do this.';
+  } else if (response.status !== 201) {
+    message.textContent = 'Something went wrong, please try again.';
+  } else {
+    message.textContent = 'Thank you for your review!';
+    for (let i = 0; i < form.children.length; i++) {
+      form.children[i].style.display = 'none';
+    }
+    message.style.display = 'block';
+  }
+}
